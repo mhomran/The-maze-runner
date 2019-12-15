@@ -64,7 +64,8 @@ export default class TexturedModelsScene extends Scene {
         this.meshes['health'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["health-model"]);
         this.meshes['suzanne'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["suzanne-model"]);
         this.meshes['coin'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["coin-model"]);
-        
+        this.meshes['ground'] = MeshUtils.Plane(this.gl, {min:[0,0], max:[100,100]});
+
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
         
         //health texture
@@ -77,7 +78,26 @@ export default class TexturedModelsScene extends Scene {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
-    
+        
+        //ground texture
+        this.textures['ground'] = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['ground']);
+        const C0 = [26, 23, 15], C1 = [245, 232, 163];
+        const W = 1024, H = 1024, cW = 256, cH = 256;
+        let data = Array(W*H*3);
+        for(let j = 0; j < H; j++){
+            for(let i = 0; i < W; i++){
+                data[i + j*W] = (Math.floor(i/cW) + Math.floor(j/cH))%2 == 0 ? C0 : C1;
+            }
+        }
+        this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 1);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGB, W, H, 0, this.gl.RGB, this.gl.UNSIGNED_BYTE, new Uint8Array(data.flat()));
+        this.gl.generateMipmap(this.gl.TEXTURE_2D);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
+        
         //maze texture
         //#pop
         this.textures['maze-texture'] = this.gl.createTexture();
@@ -232,6 +252,22 @@ export default class TexturedModelsScene extends Scene {
     
             this.meshes['coin'].draw(this.gl.TRIANGLES);
         }
+
+        //draw ground
+        let groundMat = mat4.clone(VP);
+        mat4.translate(groundMat, groundMat, [0, -2, 0]);
+        mat4.scale(groundMat, groundMat, [100, 1, 100]);
+
+        this.programs['texture'].setUniformMatrix4fv("MVP", false, groundMat);
+        this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
+
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['ground']);
+        this.programs['texture'].setUniform1i('texture_sampler', 0);
+        // If anisotropic filtering is supported, we send the parameter to the texture paramters.
+        if(this.anisotropy_ext) this.gl.texParameterf(this.gl.TEXTURE_2D, this.anisotropy_ext.TEXTURE_MAX_ANISOTROPY_EXT, this.anisotropic_filtering);
+
+        this.meshes['ground'].draw(this.gl.TRIANGLES);
 
         //draw Suzanne
         this.programs['color'].use();
