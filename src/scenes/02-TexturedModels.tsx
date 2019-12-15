@@ -14,6 +14,8 @@ export default class TexturedModelsScene extends Scene {
     camera: Camera;
     controller: FlyCameraController;
     meshes: {[name: string]: Mesh} = {};
+    health_postions: vec3[];
+    coin_postions: vec3[];
     textures: {[name: string]: WebGLTexture} = {};
 
     objectPosition: vec3 = vec3.fromValues(-2.6, -1.5, -10);
@@ -37,7 +39,11 @@ export default class TexturedModelsScene extends Scene {
             ["health-texture"]:{url:'models/health/health.png', type:'image'},
 
             //#suzanne
-            ["suzanne-model"]:{url:'models/Suzanne/Suzanne.obj', type:'text'}
+            ["suzanne-model"]:{url:'models/Suzanne/Suzanne.obj', type:'text'},
+
+            //#health
+            ["coin-model"]:{url:'models/coin/coin.obj', type:'text'},
+            ["coin-texture"]:{url:'models/coin/coin.png', type:'image'}
             });
     } 
     
@@ -56,6 +62,7 @@ export default class TexturedModelsScene extends Scene {
         this.meshes['maze'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["maze-model"]);
         this.meshes['health'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["health-model"]);
         this.meshes['suzanne'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["suzanne-model"]);
+        this.meshes['coin'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["coin-model"]);
         
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
         
@@ -82,6 +89,18 @@ export default class TexturedModelsScene extends Scene {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
 
+        //coin texture
+        this.textures['coin-texture'] = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['coin-texture']);
+        this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 4);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.game.loader.resources['coin-texture']);
+        this.gl.generateMipmap(this.gl.TEXTURE_2D);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
+
+        
         // Anisotropic filtering is not supported by WebGL by default so we need to ask the context for the extension.
         this.anisotropy_ext = this.gl.getExtension('EXT_texture_filter_anisotropic');
         // The device does not support anisotropic fltering, the extension will be null. So we need to check before using it.
@@ -107,6 +126,25 @@ export default class TexturedModelsScene extends Scene {
         this.gl.clearColor(0.88,0.65,0.15,1);
 
         this.setupControls();
+
+        //put the health
+        this.health_postions = [
+            vec3.fromValues(-2, -1.5, -10),
+            vec3.fromValues(29, -1.5, 2),
+            vec3.fromValues(-10, -1.5, -25),
+            vec3.fromValues(23, -1.5, 8),
+            vec3.fromValues(-29, -1.5, -29)
+        ];
+
+        //put the coin
+        
+        this.coin_postions = [
+            vec3.fromValues(-28, -1.5, 29),
+            vec3.fromValues(2.5, -1.5, 25),
+            vec3.fromValues(-14, -1.5, 24),
+            vec3.fromValues(-23, -1.5, -16),
+            vec3.fromValues(-19, -1.5, -29)
+        ];
     }
     
     public draw(deltaTime: number): void {
@@ -121,20 +159,25 @@ export default class TexturedModelsScene extends Scene {
         this.camera.position[1] = 1;
 
         let VP = this.camera.ViewProjectionMatrix;
+
+        //console.log(this.camera.position);
         
         //draw health
-        let healthMat = mat4.clone(VP); 
-        mat4.translate(healthMat, healthMat, [-20, 5, -10]);
-        mat4.scale(healthMat, healthMat, [20, 20, 20]);
-
-        this.programs['texture'].setUniformMatrix4fv("MVP", false, healthMat);
-        this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
-
+        
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['health-texture']);
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
+        for(let i = 0; i < 5; i++){
+        let healthMat = mat4.clone(VP); 
+        mat4.translate(healthMat, healthMat, this.health_postions[i]);
+        mat4.scale(healthMat, healthMat, [10, 10, 10]);
+
+        this.programs['texture'].setUniformMatrix4fv("MVP", false, healthMat);
+        this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
+
         this.meshes['health'].draw(this.gl.TRIANGLES);
+        }
 
         //draw maze
         let mazeMat = mat4.clone(VP);
@@ -148,14 +191,31 @@ export default class TexturedModelsScene extends Scene {
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
         this.meshes['maze'].draw(this.gl.TRIANGLES);
+        
+        
+        //draw coin
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['coin-texture']);
+        this.programs['texture'].setUniform1i('texture_sampler', 0);
+
+        for(let i = 0; i < 5; i++){
+            let coinMat = mat4.clone(VP); 
+            mat4.translate(coinMat, coinMat, this.coin_postions[i]);
+            mat4.scale(coinMat, coinMat, [5, 5, 5]);
     
-        this.programs['color'].use();
+            this.programs['texture'].setUniformMatrix4fv("MVP", false, coinMat);
+            this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
+    
+            this.meshes['coin'].draw(this.gl.TRIANGLES);
+        }
 
         //draw Suzanne
+        this.programs['color'].use();
+
         let suMat = mat4.clone(VP);
         mat4.translate(suMat, suMat, vec3.fromValues(this.camera.direction[0] * 2, this.camera.direction[1] * 2, this.camera.direction[2] * 2));
         mat4.translate(suMat, suMat, vec3.fromValues(this.camera.position[0], - 1, this.camera.position[2]));
-
+        
         this.programs['color'].setUniformMatrix4fv("MVP", false, suMat);
         this.programs['color'].setUniform4f("tint", [.5, .5, .5, 1]);
 
