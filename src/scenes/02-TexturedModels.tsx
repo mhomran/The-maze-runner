@@ -283,7 +283,7 @@ export default class TexturedModelsScene extends Scene {
         mat4.scale(groundMat, groundMat, [100, 1, 100]);
 
         this.programs['texture'].setUniformMatrix4fv("MVP", false, groundMat);
-        this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
+        this.programs['texture'].setUniform4f("tint", [1, 0, 0, 1]);
 
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['ground']);
@@ -297,9 +297,9 @@ export default class TexturedModelsScene extends Scene {
         this.programs['color'].use();
 
         let suMat = mat4.clone(VP);
-        mat4.translate(suMat, suMat, vec3.fromValues(this.cameras[0].direction[0] * 2, this.cameras[0].direction[1] * 2, this.cameras[0].direction[2] * 2));
+        mat4.translate(suMat, suMat, vec3.fromValues(this.cameras[0].direction[0] * 2, 0, this.cameras[0].direction[2] * 2));
         mat4.translate(suMat, suMat, vec3.fromValues(this.cameras[0].position[0], - 1, this.cameras[0].position[2]));
-        
+
         this.programs['color'].setUniformMatrix4fv("MVP", false, suMat);
         this.programs['color'].setUniform4f("tint", [0, 1, 1, 1]);
 
