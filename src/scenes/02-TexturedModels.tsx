@@ -4,7 +4,7 @@ import Mesh from '../common/mesh';
 import * as MeshUtils from '../common/mesh-utils';
 import Camera from '../common/camera';
 import FlyCameraController from '../common/camera-controllers/fly-camera-controller';
-import { vec3, mat4, quat} from 'gl-matrix';
+import { vec3, mat4} from 'gl-matrix';
 import { createElement} from 'tsx-create-element';
 import { Vector, Selector } from '../common/dom-utils';
 
@@ -16,6 +16,7 @@ export default class TexturedModelsScene extends Scene {
     meshes: {[name: string]: Mesh} = {};
     health_postions: vec3[];
     coin_postions: vec3[];
+    health_count:number=5;
     textures: {[name: string]: WebGLTexture} = {};
 
     objectPosition: vec3 = vec3.fromValues(-2.6, -1.5, -10);
@@ -137,16 +138,42 @@ export default class TexturedModelsScene extends Scene {
         ];
 
         //put the coin
-        
         this.coin_postions = [
             vec3.fromValues(-28, -1.5, 29),
             vec3.fromValues(2.5, -1.5, 25),
             vec3.fromValues(-14, -1.5, 24),
             vec3.fromValues(-23, -1.5, -16),
             vec3.fromValues(-19, -1.5, -29)
-        ];
+        ];    
     }
     
+    public Collision()
+    {
+
+        this.objectPosition = vec3.fromValues(this.camera.position[0] + (this.camera.direction[0] * 2),
+        -1 + this.camera.direction[1] * 2,
+        this.camera.position[2] + this.camera.direction[2] * 2) 
+    
+        for (let i =0 ;i< this.health_postions.length ; i++){
+            console.log(this.health_postions[i]);
+            if(Math.ceil(this.health_postions[i][0]) == Math.ceil(this.objectPosition[0])
+            && Math.ceil(this.health_postions[i][2]) == Math.ceil(this.objectPosition[2]))
+            {
+                console.log("hereeeeeeeee");
+                this.health_postions.splice(i,1);
+            }
+        }
+
+        for (let i =0 ;i< this.coin_postions.length ; i++){
+            console.log(this.coin_postions[i]);
+            if(Math.ceil(this.coin_postions[i][0]) == Math.ceil(this.objectPosition[0])
+            && Math.ceil(this.coin_postions[i][2]) == Math.ceil(this.objectPosition[2]))
+            {
+                this.coin_postions.splice(i,1);
+            }
+        }
+    }
+
     public draw(deltaTime: number): void {
         this.controller.update(deltaTime);
 
@@ -154,21 +181,18 @@ export default class TexturedModelsScene extends Scene {
         
         this.programs['texture'].use();
 
-        //this.camera.position = vec3.fromValues(this.objectPosition[0], this.objectPosition[1] + 2, this.objectPosition[2]-2);
-        //this.objectPosition=this.camera.position;
         this.camera.position[1] = 1;
 
         let VP = this.camera.ViewProjectionMatrix;
 
         //console.log(this.camera.position);
         
-        //draw health
-        
+        //draw health        
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['health-texture']);
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
-        for(let i = 0; i < 5; i++){
+        for(let i = 0; i < this.health_postions.length; i++){
         let healthMat = mat4.clone(VP); 
         mat4.translate(healthMat, healthMat, this.health_postions[i]);
         mat4.scale(healthMat, healthMat, [10, 10, 10]);
@@ -198,7 +222,7 @@ export default class TexturedModelsScene extends Scene {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['coin-texture']);
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
-        for(let i = 0; i < 5; i++){
+        for(let i = 0; i < this.coin_postions.length; i++){
             let coinMat = mat4.clone(VP); 
             mat4.translate(coinMat, coinMat, this.coin_postions[i]);
             mat4.scale(coinMat, coinMat, [5, 5, 5]);
@@ -220,6 +244,8 @@ export default class TexturedModelsScene extends Scene {
         this.programs['color'].setUniform4f("tint", [.5, .5, .5, 1]);
 
         this.meshes['suzanne'].draw(this.gl.TRIANGLES);
+      this.Collision();        
+
     }
     
     public end(): void {
