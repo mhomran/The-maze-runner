@@ -11,7 +11,7 @@ import { Vector, Selector } from '../common/dom-utils';
 // In this scene we will draw a small scene with multiple textured models and we will explore Anisotropic filtering
 export default class TexturedModelsScene extends Scene {
     programs : {[name: string]: ShaderProgram} = {};
-    camera: Camera;
+    cameras: Camera[];
     controller: FlyCameraController;
     meshes: {[name: string]: Mesh} = {};
     health_postions: vec3[];
@@ -128,14 +128,23 @@ export default class TexturedModelsScene extends Scene {
         // if it is supported, we will set our default filtering samples to the maximum value allowed by the device.
         if(this.anisotropy_ext) this.anisotropic_filtering = this.gl.getParameter(this.anisotropy_ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
 
-        this.camera = new Camera();
-        this.camera.type = 'perspective';
-        this.camera.position = vec3.fromValues(0,2,0);
-        this.camera.direction = vec3.fromValues(-1,0,-2);
-        this.camera.aspectRatio = this.gl.drawingBufferWidth/this.gl.drawingBufferHeight;
+        this.cameras = [];
+        this.cameras[0] = new Camera();
+        this.cameras[0].type = 'perspective';
+        this.cameras[0].position = vec3.fromValues(0,2,0);
+        this.cameras[0].direction = vec3.fromValues(-1,0,-2);
+        this.cameras[0].aspectRatio = this.gl.drawingBufferWidth/this.gl.drawingBufferHeight;
         
-        this.controller = new FlyCameraController(this.camera, this.game.input);
+        this.controller = new FlyCameraController(this.cameras[0], this.game.input);
         this.controller.movementSensitivity = 0.01;
+
+        this.cameras[1] = new Camera(); 
+        this.cameras[1].type = 'orthographic';
+        this.cameras[1].position = vec3.fromValues(0, 30, 0);
+        this.cameras[1].direction = vec3.fromValues(0, -1, 0);
+        this.cameras[1].up = vec3.fromValues(1, 0, 0);
+        this.cameras[1].orthographicHeight = 60;
+        this.cameras[1].aspectRatio = 1;
 
         this.gl.enable(this.gl.CULL_FACE);
         this.gl.cullFace(this.gl.BACK);
@@ -170,9 +179,9 @@ export default class TexturedModelsScene extends Scene {
     public Collision()
     {
 
-        this.objectPosition = vec3.fromValues(this.camera.position[0] + (this.camera.direction[0] * 2),
-        -1 + this.camera.direction[1] * 2,
-        this.camera.position[2] + this.camera.direction[2] * 2) 
+        this.objectPosition = vec3.fromValues(this.cameras[0].position[0] + (this.cameras[0].direction[0] * 2),
+        -1 + this.cameras[0].direction[1] * 2,
+        this.cameras[0].position[2] + this.cameras[0].direction[2] * 2) 
     
         for (let i =0 ;i< this.health_postions.length ; i++){
             console.log(this.health_postions[i]);
@@ -196,17 +205,32 @@ export default class TexturedModelsScene extends Scene {
 
     public draw(deltaTime: number): void {
         this.controller.update(deltaTime);
-
+        
+        this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
+        this.gl.scissor(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         
+        //prevent camer to go in y
+        this.cameras[0].position[1] = 1;
+
+        this.drawScene(this.cameras[0].ViewProjectionMatrix);
+
+        // This will enable the scissor test (now we can restrict WebGL to never modify pixels outside a specific rectangle in the screen)
+        this.gl.enable(this.gl.SCISSOR_TEST);
+
+        this.gl.viewport(0, this.gl.drawingBufferHeight - 200, 200, 200);
+        this.gl.scissor(0,  this.gl.drawingBufferHeight - 200, 200, 200);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+        this.drawScene(this.cameras[1].ViewProjectionMatrix); // Draw the scene from the Top camera
+
+        this.Collision();        
+    }
+    
+    private drawScene(VP: mat4) 
+    {
         this.programs['texture'].use();
 
-        this.camera.position[1] = 1;
-
-        let VP = this.camera.ViewProjectionMatrix;
-
-        //console.log(this.camera.position);
-        
         //draw health        
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['health-texture']);
@@ -273,17 +297,15 @@ export default class TexturedModelsScene extends Scene {
         this.programs['color'].use();
 
         let suMat = mat4.clone(VP);
-        mat4.translate(suMat, suMat, vec3.fromValues(this.camera.direction[0] * 2, this.camera.direction[1] * 2, this.camera.direction[2] * 2));
-        mat4.translate(suMat, suMat, vec3.fromValues(this.camera.position[0], - 1, this.camera.position[2]));
+        mat4.translate(suMat, suMat, vec3.fromValues(this.cameras[0].direction[0] * 2, this.cameras[0].direction[1] * 2, this.cameras[0].direction[2] * 2));
+        mat4.translate(suMat, suMat, vec3.fromValues(this.cameras[0].position[0], - 1, this.cameras[0].position[2]));
         
         this.programs['color'].setUniformMatrix4fv("MVP", false, suMat);
-        this.programs['color'].setUniform4f("tint", [.5, .5, .5, 1]);
+        this.programs['color'].setUniform4f("tint", [0, 1, 1, 1]);
 
         this.meshes['suzanne'].draw(this.gl.TRIANGLES);
-      this.Collision();        
-
     }
-    
+
     public end(): void {
         for (let key in this.programs)
             this.programs[key].dispose();
