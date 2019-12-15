@@ -4,8 +4,9 @@ import Mesh from '../common/mesh';
 import * as MeshUtils from '../common/mesh-utils';
 import Camera from '../common/camera';
 import FlyCameraController from '../common/camera-controllers/fly-camera-controller';
-import { vec3, mat4 } from 'gl-matrix';
+import { vec3, mat4, quat} from 'gl-matrix';
 import { createElement} from 'tsx-create-element';
+import { Vector, Selector } from '../common/dom-utils';
 
 // In this scene we will draw a small scene with multiple textured models and we will explore Anisotropic filtering
 export default class TexturedModelsScene extends Scene {
@@ -14,6 +15,8 @@ export default class TexturedModelsScene extends Scene {
     controller: FlyCameraController;
     meshes: {[name: string]: Mesh} = {};
     textures: {[name: string]: WebGLTexture} = {};
+
+    objectPosition: vec3 = vec3.fromValues(-2.6, -1.5, -10);
 
     anisotropy_ext: EXT_texture_filter_anisotropic; // This will hold the anisotropic filtering extension
     anisotropic_filtering: number = 0; // This will hold the maximum number of samples that the anisotropic filtering is allowed to read. 1 is equivalent to isotropic filtering.
@@ -113,10 +116,14 @@ export default class TexturedModelsScene extends Scene {
         
         this.programs['texture'].use();
 
-        let VP = this.camera.ViewProjectionMatrix;
+        //this.camera.position = vec3.fromValues(this.objectPosition[0], this.objectPosition[1] + 2, this.objectPosition[2]-2);
+        //this.objectPosition=this.camera.position;
+        this.camera.position[1] = 1;
 
+        let VP = this.camera.ViewProjectionMatrix;
+        
         //draw health
-        let healthMat = mat4.clone(VP);
+        let healthMat = mat4.clone(VP); 
         mat4.translate(healthMat, healthMat, [-20, 5, -10]);
         mat4.scale(healthMat, healthMat, [20, 20, 20]);
 
@@ -146,7 +153,8 @@ export default class TexturedModelsScene extends Scene {
 
         //draw Suzanne
         let suMat = mat4.clone(VP);
-        mat4.translate(suMat, suMat, [8, 0, 0]);
+        mat4.translate(suMat, suMat, vec3.fromValues(this.camera.direction[0] * 2, this.camera.direction[1] * 2, this.camera.direction[2] * 2));
+        mat4.translate(suMat, suMat, vec3.fromValues(this.camera.position[0], - 1, this.camera.position[2]));
 
         this.programs['color'].setUniformMatrix4fv("MVP", false, suMat);
         this.programs['color'].setUniform4f("tint", [.5, .5, .5, 1]);
@@ -173,32 +181,36 @@ export default class TexturedModelsScene extends Scene {
     /////////////////////////////////////////////////////////
     private setupControls() {
         const controls = document.querySelector('#controls');
-        
-        
 
+        const RGBToHex = (rgb: [number, number, number]): string => {
+            let arraybuffer = new ArrayBuffer(4);
+            let dv = new DataView(arraybuffer);
+            dv.setUint8(3, 0);
+            dv.setUint8(2, rgb[0]);
+            dv.setUint8(1, rgb[1]);
+            dv.setUint8(0, rgb[2]);
+            return '#' + dv.getUint32(0, true).toString(16);
+        }
+
+        const HexToRGB = (hex: string): [number, number, number] => {
+            let arraybuffer = new ArrayBuffer(4);
+            let dv = new DataView(arraybuffer);
+            dv.setUint32(0, Number.parseInt(hex.slice(1), 16), true);
+            return [dv.getUint8(2), dv.getUint8(1), dv.getUint8(0)];
+        }
+        
         controls.appendChild(
             <div>
-                {!!this.anisotropy_ext?
-                    <div className="control-row">
-                        <label className="control-label">Anisotropic Filtering</label>
-                        <input type="number" value={this.anisotropic_filtering} onchange={(ev: InputEvent)=>{this.anisotropic_filtering=Number.parseFloat((ev.target as HTMLInputElement).value)}}/>
-                        <label className="conrol-label">Max: {this.gl.getParameter(this.anisotropy_ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT)}</label>
-                    </div>
-                    :
-                    <div className="control-row">
-                        <label className="control-label">Anisotropic Filtering is not supported on this device.</label>
-                    </div>
-                }
+                <div className="control-row">
+                    <label className="control-label">Object Position</label>
+                    <Vector vector={this.objectPosition}/>    
+                </div>
             </div>
-            
         );
-        
     }
 
     private clearControls() {
         const controls = document.querySelector('#controls');
         controls.innerHTML = "";
     }
-
-
 }

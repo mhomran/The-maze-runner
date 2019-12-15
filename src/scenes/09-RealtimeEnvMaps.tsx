@@ -198,7 +198,6 @@ export default class RealtimeEnvironmentMapScene extends Scene {
         this.gl.bindTexture(this.gl.TEXTURE_CUBE_MAP, this.textures['environment']);
         this.gl.generateMipmap(this.gl.TEXTURE_CUBE_MAP);
         
-
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
         this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
 
@@ -230,8 +229,7 @@ export default class RealtimeEnvironmentMapScene extends Scene {
         program.setUniform1i('cube_texture_sampler', 0);
         this.gl.bindSampler(0, this.sampler);
 
-        this.meshes[this.currentMesh].draw(this.gl.TRIANGLES);
-        
+        this.meshes[this.currentMesh].draw(this.gl.TRIANGLES);   
     }
 
     private drawScene(VP: mat4){
@@ -355,6 +353,4 @@ export default class RealtimeEnvironmentMapScene extends Scene {
         const controls = document.querySelector('#controls');
         controls.innerHTML = "";
     }
-
-
 }
