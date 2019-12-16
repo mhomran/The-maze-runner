@@ -101,5 +101,4 @@ public
 .tern-port
 
 #custom
-dist/
 !*.obj
