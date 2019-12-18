@@ -11110,7 +11110,8 @@ function (_super) {
 
     _this.programs = {};
     _this.meshes = {};
-    _this.health_count = 5;
+    _this.health_count = 0;
+    _this.coin_count = 0;
     _this.textures = {};
     _this.objectPosition = gl_matrix_1.vec3.fromValues(-2.6, -1.5, -10);
     _this.anisotropic_filtering = 0; // This will hold the maximum number of samples that the anisotropic filtering is allowed to read. 1 is equivalent to isotropic filtering.
@@ -11275,18 +11276,18 @@ function (_super) {
     this.objectPosition = gl_matrix_1.vec3.fromValues(this.cameras[0].position[0] + this.cameras[0].direction[0] * 2, -1 + this.cameras[0].direction[1] * 2, this.cameras[0].position[2] + this.cameras[0].direction[2] * 2);
 
     for (var i = 0; i < this.health_postions.length; i++) {
-      console.log(this.health_postions[i]);
-
       if (Math.ceil(this.health_postions[i][0]) == Math.ceil(this.objectPosition[0]) && Math.ceil(this.health_postions[i][2]) == Math.ceil(this.objectPosition[2])) {
-        console.log("hereeeeeeeee");
+        this.health_count++;
+        document.querySelector('#Health_p').innerHTML = this.health_count.toFixed();
         this.health_postions.splice(i, 1);
       }
     }
 
     for (var i = 0; i < this.coin_postions.length; i++) {
-      console.log(this.coin_postions[i]);
-
       if (Math.ceil(this.coin_postions[i][0]) == Math.ceil(this.objectPosition[0]) && Math.ceil(this.coin_postions[i][2]) == Math.ceil(this.objectPosition[2])) {
+        this.coin_count++;
+        document.querySelector('#Score_p').innerHTML = this.coin_count.toFixed(); //console.log(this.coin_postions.length.toFixed())
+
         this.coin_postions.splice(i, 1);
       }
     }
@@ -11432,7 +11433,7 @@ function (_super) {
   return TexturedModelsScene;
 }(game_1.Scene);
 
-exports.default = TexturedModelsScene;
+exports.default = TexturedModelsScene; //
 },{"../common/game":"src/common/game.ts","../common/shader-program":"src/common/shader-program.ts","../common/mesh-utils":"src/common/mesh-utils.ts","../common/camera":"src/common/camera.ts","../common/camera-controllers/fly-camera-controller":"src/common/camera-controllers/fly-camera-controller.ts","gl-matrix":"node_modules/gl-matrix/esm/index.js","tsx-create-element":"node_modules/tsx-create-element/dist/es6/index.js","../common/dom-utils":"src/common/dom-utils.tsx"}],"src/scenes/03-Terrain.tsx":[function(require,module,exports) {
 "use strict";
 
@@ -14079,7 +14080,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49399" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50789" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
@@ -14257,3 +14258,15 @@ function hmrAcceptRun(bundle, id) {
 }
 },{}]},{},["node_modules/parcel-bundler/src/builtins/hmr-runtime.js","src/app.ts"], null)
 //# sourceMappingURL=/app.5cec07dd.js.map
+
+//////////////Timer///////////////
+var timeleft = 100;
+        var downloadTimer = setInterval(function () {
+            document.getElementById("Timer_p").innerHTML = timeleft;
+            timeleft -= 1;
+            if (timeleft <= 0) {
+                clearInterval(downloadTimer);
+                document.getElementById("Timer_p").innerHTML = "Finished"
+            }
+        }, 1000);
+   

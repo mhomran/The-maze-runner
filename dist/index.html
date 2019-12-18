@@ -1,16 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Gfx Lab</title>
     <link rel="stylesheet" href="/style.97fcb138.css">
+    <style>.dashboard {
+            position: fixed;
+            right: 400px;
+            top: 10px;
+        }
+
+        .dashboard div {
+            color: white;
+            font-size: 20px;
+        }</style>
 <script src="/style.97fcb138.js"></script></head>
+
 <body>
     <div>
         <canvas width="960" height="540" id="app" tabindex="1">
-            <!-- Here is where we will draw our scene -->
+            Here is where we will draw our scene
         </canvas>
     </div>
     <div>
@@ -18,7 +30,22 @@
         <select name="scenes" id="scenes"></select>
     </div>
     <div id="controls"></div>
+    <div class="dashboard">
+        <div id="Score">SCORE
+            <p id="Score_p">0</p>
+        </div>
+        <div id="Health">Health
+            <p id="Health_p">0</p>
+        </div>
+        <div id="Timer">Time
+            <p id="Timer_p">0</p>
+        </div>
+    </div>
     <!-- The following line includes our script which will run WebGL -->
+
     <script src="/app.5cec07dd.js"></script>
+    
+
 </body>
+
 </html>

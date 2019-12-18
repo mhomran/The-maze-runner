@@ -4,20 +4,21 @@ import Mesh from '../common/mesh';
 import * as MeshUtils from '../common/mesh-utils';
 import Camera from '../common/camera';
 import FlyCameraController from '../common/camera-controllers/fly-camera-controller';
-import { vec3, mat4} from 'gl-matrix';
-import { createElement} from 'tsx-create-element';
+import { vec3, mat4 } from 'gl-matrix';
+import { createElement } from 'tsx-create-element';
 import { Vector, Selector } from '../common/dom-utils';
 
 // In this scene we will draw a small scene with multiple textured models and we will explore Anisotropic filtering
 export default class TexturedModelsScene extends Scene {
-    programs : {[name: string]: ShaderProgram} = {};
+    programs: { [name: string]: ShaderProgram } = {};
     cameras: Camera[];
     controller: FlyCameraController;
-    meshes: {[name: string]: Mesh} = {};
+    meshes: { [name: string]: Mesh } = {};
     health_postions: vec3[];
     coin_postions: vec3[];
-    health_count:number=5;
-    textures: {[name: string]: WebGLTexture} = {};
+    health_count: number = 0;
+    coin_count: number = 0;
+    textures: { [name: string]: WebGLTexture } = {};
 
     objectPosition: vec3 = vec3.fromValues(-2.6, -1.5, -10);
 
@@ -26,28 +27,28 @@ export default class TexturedModelsScene extends Scene {
 
     public load(): void {
         this.game.loader.load({
-            ["texture.vert"]:{url:'shaders/texture.vert', type:'text'},
-            ["texture.frag"]:{url:'shaders/texture.frag', type:'text'},
-            ["color.vert"]:{url:'shaders/color.vert', type:'text'},
-            ["color.frag"]:{url:'shaders/color.frag', type:'text'},
-            
+            ["texture.vert"]: { url: 'shaders/texture.vert', type: 'text' },
+            ["texture.frag"]: { url: 'shaders/texture.frag', type: 'text' },
+            ["color.vert"]: { url: 'shaders/color.vert', type: 'text' },
+            ["color.frag"]: { url: 'shaders/color.frag', type: 'text' },
+
             //#maze
-            ["maze-model"]:{url:'models/maze/maze.obj', type:'text'},
-            ["maze-texture"]:{url:'models/maze/maze.png', type:'image'},
-    
+            ["maze-model"]: { url: 'models/maze/maze.obj', type: 'text' },
+            ["maze-texture"]: { url: 'models/maze/maze.png', type: 'image' },
+
             //#health
-            ["health-model"]:{url:'models/health/health.obj', type:'text'},
-            ["health-texture"]:{url:'models/health/health.png', type:'image'},
+            ["health-model"]: { url: 'models/health/health.obj', type: 'text' },
+            ["health-texture"]: { url: 'models/health/health.png', type: 'image' },
 
             //#suzanne
-            ["suzanne-model"]:{url:'models/Suzanne/Suzanne.obj', type:'text'},
+            ["suzanne-model"]: { url: 'models/Suzanne/Suzanne.obj', type: 'text' },
 
             //#health
-            ["coin-model"]:{url:'models/coin/coin.obj', type:'text'},
-            ["coin-texture"]:{url:'models/coin/coin.png', type:'image'}
-            });
-    } 
-    
+            ["coin-model"]: { url: 'models/coin/coin.obj', type: 'text' },
+            ["coin-texture"]: { url: 'models/coin/coin.png', type: 'image' }
+        });
+    }
+
     public start(): void {
         this.programs['texture'] = new ShaderProgram(this.gl);
         this.programs['texture'].attach(this.game.loader.resources["texture.vert"], this.gl.VERTEX_SHADER);
@@ -59,15 +60,15 @@ export default class TexturedModelsScene extends Scene {
         this.programs['color'].attach(this.game.loader.resources["color.frag"], this.gl.FRAGMENT_SHADER);
         this.programs['color'].link();
 
-        this.meshes['ground'] = MeshUtils.Plane(this.gl, {min:[0,0], max:[100,100]});
+        this.meshes['ground'] = MeshUtils.Plane(this.gl, { min: [0, 0], max: [100, 100] });
         this.meshes['maze'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["maze-model"]);
         this.meshes['health'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["health-model"]);
         this.meshes['suzanne'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["suzanne-model"]);
         this.meshes['coin'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["coin-model"]);
-        this.meshes['ground'] = MeshUtils.Plane(this.gl, {min:[0,0], max:[100,100]});
+        this.meshes['ground'] = MeshUtils.Plane(this.gl, { min: [0, 0], max: [100, 100] });
 
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
-        
+
         //health texture
         this.textures['health-texture'] = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['health-texture']);
@@ -78,16 +79,16 @@ export default class TexturedModelsScene extends Scene {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
-        
+
         //ground texture
         this.textures['ground'] = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['ground']);
         const C0 = [26, 23, 15], C1 = [245, 232, 163];
         const W = 1024, H = 1024, cW = 256, cH = 256;
-        let data = Array(W*H*3);
-        for(let j = 0; j < H; j++){
-            for(let i = 0; i < W; i++){
-                data[i + j*W] = (Math.floor(i/cW) + Math.floor(j/cH))%2 == 0 ? C0 : C1;
+        let data = Array(W * H * 3);
+        for (let j = 0; j < H; j++) {
+            for (let i = 0; i < W; i++) {
+                data[i + j * W] = (Math.floor(i / cW) + Math.floor(j / cH)) % 2 == 0 ? C0 : C1;
             }
         }
         this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 1);
@@ -97,7 +98,7 @@ export default class TexturedModelsScene extends Scene {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
-        
+
         //maze texture
         //#pop
         this.textures['maze-texture'] = this.gl.createTexture();
@@ -121,24 +122,24 @@ export default class TexturedModelsScene extends Scene {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
 
-        
+
         // Anisotropic filtering is not supported by WebGL by default so we need to ask the context for the extension.
         this.anisotropy_ext = this.gl.getExtension('EXT_texture_filter_anisotropic');
         // The device does not support anisotropic fltering, the extension will be null. So we need to check before using it.
         // if it is supported, we will set our default filtering samples to the maximum value allowed by the device.
-        if(this.anisotropy_ext) this.anisotropic_filtering = this.gl.getParameter(this.anisotropy_ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+        if (this.anisotropy_ext) this.anisotropic_filtering = this.gl.getParameter(this.anisotropy_ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
 
         this.cameras = [];
         this.cameras[0] = new Camera();
         this.cameras[0].type = 'perspective';
-        this.cameras[0].position = vec3.fromValues(0,2,0);
-        this.cameras[0].direction = vec3.fromValues(-1,0,-2);
-        this.cameras[0].aspectRatio = this.gl.drawingBufferWidth/this.gl.drawingBufferHeight;
-        
+        this.cameras[0].position = vec3.fromValues(0, 2, 0);
+        this.cameras[0].direction = vec3.fromValues(-1, 0, -2);
+        this.cameras[0].aspectRatio = this.gl.drawingBufferWidth / this.gl.drawingBufferHeight;
+
         this.controller = new FlyCameraController(this.cameras[0], this.game.input);
         this.controller.movementSensitivity = 0.01;
 
-        this.cameras[1] = new Camera(); 
+        this.cameras[1] = new Camera();
         this.cameras[1].type = 'orthographic';
         this.cameras[1].position = vec3.fromValues(0, 30, 0);
         this.cameras[1].direction = vec3.fromValues(0, -1, 0);
@@ -153,7 +154,7 @@ export default class TexturedModelsScene extends Scene {
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.depthFunc(this.gl.LEQUAL);
 
-        this.gl.clearColor(0.88,0.65,0.15,1);
+        this.gl.clearColor(0.88, 0.65, 0.15, 1);
 
         this.setupControls();
 
@@ -173,43 +174,48 @@ export default class TexturedModelsScene extends Scene {
             vec3.fromValues(-14, -1.5, 24),
             vec3.fromValues(-23, -1.5, -16),
             vec3.fromValues(-19, -1.5, -29)
-        ];    
+        ];
     }
-    
-    public Collision()
-    {
+
+    public Collision() {
 
         this.objectPosition = vec3.fromValues(this.cameras[0].position[0] + (this.cameras[0].direction[0] * 2),
-        -1 + this.cameras[0].direction[1] * 2,
-        this.cameras[0].position[2] + this.cameras[0].direction[2] * 2) 
-    
-        for (let i =0 ;i< this.health_postions.length ; i++){
-            console.log(this.health_postions[i]);
-            if(Math.ceil(this.health_postions[i][0]) == Math.ceil(this.objectPosition[0])
-            && Math.ceil(this.health_postions[i][2]) == Math.ceil(this.objectPosition[2]))
-            {
-                console.log("hereeeeeeeee");
-                this.health_postions.splice(i,1);
+            -1 + this.cameras[0].direction[1] * 2,
+            this.cameras[0].position[2] + this.cameras[0].direction[2] * 2)
+
+        for (let i = 0; i < this.health_postions.length; i++) {
+
+            if (Math.ceil(this.health_postions[i][0]) == Math.ceil(this.objectPosition[0])
+                && Math.ceil(this.health_postions[i][2]) == Math.ceil(this.objectPosition[2])) {
+                this.health_count++;
+                document.querySelector('#Health_p').innerHTML =
+
+                    this.health_count.toFixed();
+                this.health_postions.splice(i, 1);
+
             }
         }
 
-        for (let i =0 ;i< this.coin_postions.length ; i++){
-            console.log(this.coin_postions[i]);
-            if(Math.ceil(this.coin_postions[i][0]) == Math.ceil(this.objectPosition[0])
-            && Math.ceil(this.coin_postions[i][2]) == Math.ceil(this.objectPosition[2]))
-            {
-                this.coin_postions.splice(i,1);
+        for (let i = 0; i < this.coin_postions.length; i++) {
+
+            if (Math.ceil(this.coin_postions[i][0]) == Math.ceil(this.objectPosition[0])
+                && Math.ceil(this.coin_postions[i][2]) == Math.ceil(this.objectPosition[2])) {
+                this.coin_count++;
+                document.querySelector('#Score_p').innerHTML =
+                    this.coin_count.toFixed();
+                //console.log(this.coin_postions.length.toFixed())
+                this.coin_postions.splice(i, 1);
             }
         }
     }
 
     public draw(deltaTime: number): void {
         this.controller.update(deltaTime);
-        
+
         this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
         this.gl.scissor(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-        
+
         //prevent camer to go in y
         this.cameras[0].position[1] = 1;
 
@@ -219,16 +225,15 @@ export default class TexturedModelsScene extends Scene {
         this.gl.enable(this.gl.SCISSOR_TEST);
 
         this.gl.viewport(0, this.gl.drawingBufferHeight - 200, 200, 200);
-        this.gl.scissor(0,  this.gl.drawingBufferHeight - 200, 200, 200);
+        this.gl.scissor(0, this.gl.drawingBufferHeight - 200, 200, 200);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
         this.drawScene(this.cameras[1].ViewProjectionMatrix); // Draw the scene from the Top camera
 
-        this.Collision();        
+        this.Collision();
     }
-    
-    private drawScene(VP: mat4) 
-    {
+
+    private drawScene(VP: mat4) {
         this.programs['texture'].use();
 
         //draw health        
@@ -236,15 +241,15 @@ export default class TexturedModelsScene extends Scene {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['health-texture']);
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
-        for(let i = 0; i < this.health_postions.length; i++){
-        let healthMat = mat4.clone(VP); 
-        mat4.translate(healthMat, healthMat, this.health_postions[i]);
-        mat4.scale(healthMat, healthMat, [10, 10, 10]);
+        for (let i = 0; i < this.health_postions.length; i++) {
+            let healthMat = mat4.clone(VP);
+            mat4.translate(healthMat, healthMat, this.health_postions[i]);
+            mat4.scale(healthMat, healthMat, [10, 10, 10]);
 
-        this.programs['texture'].setUniformMatrix4fv("MVP", false, healthMat);
-        this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
+            this.programs['texture'].setUniformMatrix4fv("MVP", false, healthMat);
+            this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
 
-        this.meshes['health'].draw(this.gl.TRIANGLES);
+            this.meshes['health'].draw(this.gl.TRIANGLES);
         }
 
         //draw maze
@@ -259,21 +264,21 @@ export default class TexturedModelsScene extends Scene {
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
         this.meshes['maze'].draw(this.gl.TRIANGLES);
-        
-        
+
+
         //draw coin
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['coin-texture']);
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
-        for(let i = 0; i < this.coin_postions.length; i++){
-            let coinMat = mat4.clone(VP); 
+        for (let i = 0; i < this.coin_postions.length; i++) {
+            let coinMat = mat4.clone(VP);
             mat4.translate(coinMat, coinMat, this.coin_postions[i]);
             mat4.scale(coinMat, coinMat, [5, 5, 5]);
-    
+
             this.programs['texture'].setUniformMatrix4fv("MVP", false, coinMat);
             this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
-    
+
             this.meshes['coin'].draw(this.gl.TRIANGLES);
         }
 
@@ -289,7 +294,7 @@ export default class TexturedModelsScene extends Scene {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['ground']);
         this.programs['texture'].setUniform1i('texture_sampler', 0);
         // If anisotropic filtering is supported, we send the parameter to the texture paramters.
-        if(this.anisotropy_ext) this.gl.texParameterf(this.gl.TEXTURE_2D, this.anisotropy_ext.TEXTURE_MAX_ANISOTROPY_EXT, this.anisotropic_filtering);
+        if (this.anisotropy_ext) this.gl.texParameterf(this.gl.TEXTURE_2D, this.anisotropy_ext.TEXTURE_MAX_ANISOTROPY_EXT, this.anisotropic_filtering);
 
         this.meshes['ground'].draw(this.gl.TRIANGLES);
 
@@ -310,14 +315,15 @@ export default class TexturedModelsScene extends Scene {
         for (let key in this.programs)
             this.programs[key].dispose();
         this.programs = {};
-        for(let key in this.meshes)
+        for (let key in this.meshes)
             this.meshes[key].dispose();
         this.meshes = {};
-        for(let key in this.textures)
+        for (let key in this.textures)
             this.gl.deleteTexture(this.textures[key]);
         this.textures = {};
         this.clearControls();
     }
+
 
 
     /////////////////////////////////////////////////////////
@@ -342,12 +348,12 @@ export default class TexturedModelsScene extends Scene {
             dv.setUint32(0, Number.parseInt(hex.slice(1), 16), true);
             return [dv.getUint8(2), dv.getUint8(1), dv.getUint8(0)];
         }
-        
+
         controls.appendChild(
             <div>
                 <div className="control-row">
                     <label className="control-label">Object Position</label>
-                    <Vector vector={this.objectPosition}/>    
+                    <Vector vector={this.objectPosition} />
                 </div>
             </div>
         );
@@ -356,5 +362,8 @@ export default class TexturedModelsScene extends Scene {
     private clearControls() {
         const controls = document.querySelector('#controls');
         controls.innerHTML = "";
+
     }
+
 }
+//
