@@ -211,7 +211,7 @@ export default class TexturedModelsScene extends Scene {
 
     public Collision() {
         this.objectPosition = vec3.fromValues(this.cameras[0].position[0] + (this.cameras[0].direction[0] * 2),
-        -1 + this.cameras[0].direction[1] * 2,
+        -1,
         this.cameras[0].position[2] + this.cameras[0].direction[2] * 2)
 
         //check for collision with the maze borders
@@ -297,6 +297,7 @@ export default class TexturedModelsScene extends Scene {
         for (let i = 0; i < this.health_postions.length; i++) {
             let healthMat = mat4.clone(VP);
             mat4.translate(healthMat, healthMat, this.health_postions[i]);
+            mat4.rotateX(healthMat, healthMat, Math.PI);
             mat4.scale(healthMat, healthMat, [10, 10, 10]);
 
             this.programs['texture'].setUniformMatrix4fv("MVP", false, healthMat);
@@ -351,6 +352,7 @@ export default class TexturedModelsScene extends Scene {
 
         this.meshes['ground'].draw(this.gl.TRIANGLES);
 
+        //draw beasts
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['beast-texture']);
         this.programs['texture'].setUniform1i('texture_sampler', 0);
