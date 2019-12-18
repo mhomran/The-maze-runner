@@ -11316,7 +11316,6 @@ function (_super) {
 
   TexturedModelsScene.prototype.draw = function (deltaTime) {
     this.controller.update(deltaTime);
-    console.log(this.cameras[0].position);
     this.time += deltaTime; // Update time
 
     this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
@@ -11404,6 +11403,15 @@ function (_super) {
     var suMat = gl_matrix_1.mat4.clone(VP);
     gl_matrix_1.mat4.translate(suMat, suMat, gl_matrix_1.vec3.fromValues(this.cameras[0].direction[0] * 2, 0, this.cameras[0].direction[2] * 2));
     gl_matrix_1.mat4.translate(suMat, suMat, gl_matrix_1.vec3.fromValues(this.cameras[0].position[0], -1, this.cameras[0].position[2]));
+    console.log(this.cameras[0].direction);
+    console.log(Math.atan(this.cameras[0].direction[0] / this.cameras[0].direction[2]));
+
+    if (this.cameras[0].direction[2] < 0) {
+      gl_matrix_1.mat4.rotateY(suMat, suMat, Math.PI + Math.atan(this.cameras[0].direction[0] / this.cameras[0].direction[2]));
+    } else {
+      gl_matrix_1.mat4.rotateY(suMat, suMat, Math.atan(this.cameras[0].direction[0] / this.cameras[0].direction[2]));
+    }
+
     this.programs['color'].setUniformMatrix4fv("MVP", false, suMat);
     this.programs['color'].setUniform4f("tint", [0, 1, 1, 1]);
     this.meshes['suzanne'].draw(this.gl.TRIANGLES);
@@ -14117,7 +14125,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53869" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55792" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

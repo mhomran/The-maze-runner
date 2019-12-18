@@ -235,8 +235,6 @@ export default class TexturedModelsScene extends Scene {
     public draw(deltaTime: number): void {
         this.controller.update(deltaTime);
         
-        console.log(this.cameras[0].position);
-
         this.time += deltaTime; // Update time
 
         this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
@@ -347,6 +345,21 @@ export default class TexturedModelsScene extends Scene {
         let suMat = mat4.clone(VP);
         mat4.translate(suMat, suMat, vec3.fromValues(this.cameras[0].direction[0] * 2, 0, this.cameras[0].direction[2] * 2));
         mat4.translate(suMat, suMat, vec3.fromValues(this.cameras[0].position[0], - 1, this.cameras[0].position[2]));
+
+        console.log(this.cameras[0].direction);
+        console.log(Math.atan(this.cameras[0].direction[0]/
+            this.cameras[0].direction[2]));
+
+        if (this.cameras[0].direction[2] < 0 )
+        {
+            mat4.rotateY(suMat, suMat, Math.PI + Math.atan(this.cameras[0].direction[0]/
+             this.cameras[0].direction[2]));
+        }
+        else
+        {
+            mat4.rotateY(suMat, suMat, Math.atan(this.cameras[0].direction[0]/
+            this.cameras[0].direction[2]));
+        }
 
         this.programs['color'].setUniformMatrix4fv("MVP", false, suMat);
         this.programs['color'].setUniform4f("tint", [0, 1, 1, 1]);
