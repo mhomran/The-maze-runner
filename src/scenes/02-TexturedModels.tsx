@@ -8,6 +8,12 @@ import { vec3, mat4} from 'gl-matrix';
 import { createElement} from 'tsx-create-element';
 import { Vector, Selector } from '../common/dom-utils';
 
+// This function creates a triangle wave, this is used to move the house model
+function triangle(x: number): number {
+    let i = Math.floor(x);
+    return (i%2==0)?(x-i):(1+i-x);
+}
+
 // In this scene we will draw a small scene with multiple textured models and we will explore Anisotropic filtering
 export default class TexturedModelsScene extends Scene {
     programs : {[name: string]: ShaderProgram} = {};
@@ -16,11 +22,14 @@ export default class TexturedModelsScene extends Scene {
     meshes: {[name: string]: Mesh} = {};
     health_postions: vec3[];
     coin_postions: vec3[];
+    beast_postions:vec3[];
     health_count:number=5;
     textures: {[name: string]: WebGLTexture} = {};
 
     objectPosition: vec3 = vec3.fromValues(-2.6, -1.5, -10);
-
+    
+    time: number = 0;
+    
     anisotropy_ext: EXT_texture_filter_anisotropic; // This will hold the anisotropic filtering extension
     anisotropic_filtering: number = 0; // This will hold the maximum number of samples that the anisotropic filtering is allowed to read. 1 is equivalent to isotropic filtering.
 
@@ -44,7 +53,11 @@ export default class TexturedModelsScene extends Scene {
 
             //#health
             ["coin-model"]:{url:'models/coin/coin.obj', type:'text'},
-            ["coin-texture"]:{url:'models/coin/coin.png', type:'image'}
+            ["coin-texture"]:{url:'models/coin/coin.png', type:'image'},
+
+            //#beast
+            ["beast-model"]:{url:'models/beast/beast.obj', type:'text'},
+            ["beast-texture"]:{url:'models/beast/beast.png', type:'image'}
             });
     } 
     
@@ -65,6 +78,7 @@ export default class TexturedModelsScene extends Scene {
         this.meshes['suzanne'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["suzanne-model"]);
         this.meshes['coin'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["coin-model"]);
         this.meshes['ground'] = MeshUtils.Plane(this.gl, {min:[0,0], max:[100,100]});
+        this.meshes['beast'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["beast-model"]);
 
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
         
@@ -121,6 +135,16 @@ export default class TexturedModelsScene extends Scene {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
 
+        //beast texture
+        this.textures['beast-texture'] = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['beast-texture']);
+        this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 4);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.game.loader.resources['beast-texture']);
+        this.gl.generateMipmap(this.gl.TEXTURE_2D);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
         
         // Anisotropic filtering is not supported by WebGL by default so we need to ask the context for the extension.
         this.anisotropy_ext = this.gl.getExtension('EXT_texture_filter_anisotropic');
@@ -173,7 +197,15 @@ export default class TexturedModelsScene extends Scene {
             vec3.fromValues(-14, -1.5, 24),
             vec3.fromValues(-23, -1.5, -16),
             vec3.fromValues(-19, -1.5, -29)
-        ];    
+        ];
+        
+          //put the beasts
+          this.beast_postions = [
+            vec3.fromValues(-9.9, -1.5, -9),
+            vec3.fromValues(-9.8, -1.5, 22.2),
+            vec3.fromValues(27, -1.5, -4.8),
+            vec3.fromValues(6.7, -1.5, 15)
+        ]; 
     }
     
     public Collision()
@@ -184,17 +216,14 @@ export default class TexturedModelsScene extends Scene {
         this.cameras[0].position[2] + this.cameras[0].direction[2] * 2) 
     
         for (let i =0 ;i< this.health_postions.length ; i++){
-            console.log(this.health_postions[i]);
             if(Math.ceil(this.health_postions[i][0]) == Math.ceil(this.objectPosition[0])
             && Math.ceil(this.health_postions[i][2]) == Math.ceil(this.objectPosition[2]))
             {
-                console.log("hereeeeeeeee");
                 this.health_postions.splice(i,1);
             }
         }
 
         for (let i =0 ;i< this.coin_postions.length ; i++){
-            console.log(this.coin_postions[i]);
             if(Math.ceil(this.coin_postions[i][0]) == Math.ceil(this.objectPosition[0])
             && Math.ceil(this.coin_postions[i][2]) == Math.ceil(this.objectPosition[2]))
             {
@@ -206,6 +235,10 @@ export default class TexturedModelsScene extends Scene {
     public draw(deltaTime: number): void {
         this.controller.update(deltaTime);
         
+        console.log(this.cameras[0].position);
+
+        this.time += deltaTime; // Update time
+
         this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
         this.gl.scissor(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
@@ -293,6 +326,21 @@ export default class TexturedModelsScene extends Scene {
 
         this.meshes['ground'].draw(this.gl.TRIANGLES);
 
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['beast-texture']);
+        this.programs['texture'].setUniform1i('texture_sampler', 0);
+
+        for(let i = 0; i < this.beast_postions.length; i++){
+            let beastMat = mat4.clone(VP);
+            mat4.translate(beastMat, beastMat, this.beast_postions[i]);
+            mat4.translate(beastMat, beastMat, [5 * triangle(this.time/1000), 0, 0]);
+
+            this.programs['texture'].setUniformMatrix4fv("MVP", false, beastMat);
+            this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
+    
+            this.meshes['beast'].draw(this.gl.TRIANGLES);
+        }
+        
         //draw Suzanne
         this.programs['color'].use();
 
