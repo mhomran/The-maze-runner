@@ -210,11 +210,29 @@ export default class TexturedModelsScene extends Scene {
     }
 
     public Collision() {
-
         this.objectPosition = vec3.fromValues(this.cameras[0].position[0] + (this.cameras[0].direction[0] * 2),
-            -1 + this.cameras[0].direction[1] * 2,
-            this.cameras[0].position[2] + this.cameras[0].direction[2] * 2)
+        -1 + this.cameras[0].direction[1] * 2,
+        this.cameras[0].position[2] + this.cameras[0].direction[2] * 2)
 
+        //check for collision with the maze borders
+        if (this.cameras[0].position[0] > 31)
+        {
+            this.cameras[0].position[0] = 31;
+        }
+        else if (this.cameras[0].position[0] < -31)
+        {
+            this.cameras[0].position[0] = -31;
+        }
+
+        if (this.cameras[0].position[2] > 31)
+        {
+            this.cameras[0].position[2] = 31;
+        }
+        else if (this.cameras[0].position[2] < -31)
+        {
+            this.cameras[0].position[2] = -31;
+        }
+        
         for (let i = 0; i < this.health_postions.length; i++) {
 
             if (Math.ceil(this.health_postions[i][0]) == Math.ceil(this.objectPosition[0])
@@ -235,7 +253,6 @@ export default class TexturedModelsScene extends Scene {
                 this.coin_count++;
                 document.querySelector('#Score_p').innerHTML =
                     this.coin_count.toFixed();
-                //console.log(this.coin_postions.length.toFixed())
                 this.coin_postions.splice(i, 1);
             }
         }
@@ -243,6 +260,8 @@ export default class TexturedModelsScene extends Scene {
 
     public draw(deltaTime: number): void {
         this.controller.update(deltaTime);
+
+        console.log(this.cameras[0].position);
 
         this.time += deltaTime; // Update time
 
@@ -351,12 +370,8 @@ export default class TexturedModelsScene extends Scene {
         this.programs['color'].use();
 
         let suMat = mat4.clone(VP);
-        mat4.translate(suMat, suMat, vec3.fromValues(this.cameras[0].direction[0] * 2, 0, this.cameras[0].direction[2] * 2));
-        mat4.translate(suMat, suMat, vec3.fromValues(this.cameras[0].position[0], - 1, this.cameras[0].position[2]));
 
-        console.log(this.cameras[0].direction);
-        console.log(Math.atan(this.cameras[0].direction[0] /
-            this.cameras[0].direction[2]));
+        mat4.translate(suMat, suMat, this.objectPosition);
 
         if (this.cameras[0].direction[2] < 0) {
             mat4.rotateY(suMat, suMat, Math.PI + Math.atan(this.cameras[0].direction[0] /

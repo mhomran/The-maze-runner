@@ -11300,7 +11300,19 @@ function (_super) {
   };
 
   TexturedModelsScene.prototype.Collision = function () {
-    this.objectPosition = gl_matrix_1.vec3.fromValues(this.cameras[0].position[0] + this.cameras[0].direction[0] * 2, -1 + this.cameras[0].direction[1] * 2, this.cameras[0].position[2] + this.cameras[0].direction[2] * 2);
+    this.objectPosition = gl_matrix_1.vec3.fromValues(this.cameras[0].position[0] + this.cameras[0].direction[0] * 2, -1 + this.cameras[0].direction[1] * 2, this.cameras[0].position[2] + this.cameras[0].direction[2] * 2); //check for collision with the maze borders
+
+    if (this.cameras[0].position[0] > 31) {
+      this.cameras[0].position[0] = 31;
+    } else if (this.cameras[0].position[0] < -31) {
+      this.cameras[0].position[0] = -31;
+    }
+
+    if (this.cameras[0].position[2] > 31) {
+      this.cameras[0].position[2] = 31;
+    } else if (this.cameras[0].position[2] < -31) {
+      this.cameras[0].position[2] = -31;
+    }
 
     for (var i = 0; i < this.health_postions.length; i++) {
       if (Math.ceil(this.health_postions[i][0]) == Math.ceil(this.objectPosition[0]) && Math.ceil(this.health_postions[i][2]) == Math.ceil(this.objectPosition[2])) {
@@ -11313,8 +11325,7 @@ function (_super) {
     for (var i = 0; i < this.coin_postions.length; i++) {
       if (Math.ceil(this.coin_postions[i][0]) == Math.ceil(this.objectPosition[0]) && Math.ceil(this.coin_postions[i][2]) == Math.ceil(this.objectPosition[2])) {
         this.coin_count++;
-        document.querySelector('#Score_p').innerHTML = this.coin_count.toFixed(); //console.log(this.coin_postions.length.toFixed())
-
+        document.querySelector('#Score_p').innerHTML = this.coin_count.toFixed();
         this.coin_postions.splice(i, 1);
       }
     }
@@ -11322,6 +11333,7 @@ function (_super) {
 
   TexturedModelsScene.prototype.draw = function (deltaTime) {
     this.controller.update(deltaTime);
+    console.log(this.cameras[0].position);
     this.time += deltaTime; // Update time
 
     this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
@@ -11407,10 +11419,7 @@ function (_super) {
 
     this.programs['color'].use();
     var suMat = gl_matrix_1.mat4.clone(VP);
-    gl_matrix_1.mat4.translate(suMat, suMat, gl_matrix_1.vec3.fromValues(this.cameras[0].direction[0] * 2, 0, this.cameras[0].direction[2] * 2));
-    gl_matrix_1.mat4.translate(suMat, suMat, gl_matrix_1.vec3.fromValues(this.cameras[0].position[0], -1, this.cameras[0].position[2]));
-    console.log(this.cameras[0].direction);
-    console.log(Math.atan(this.cameras[0].direction[0] / this.cameras[0].direction[2]));
+    gl_matrix_1.mat4.translate(suMat, suMat, this.objectPosition);
 
     if (this.cameras[0].direction[2] < 0) {
       gl_matrix_1.mat4.rotateY(suMat, suMat, Math.PI + Math.atan(this.cameras[0].direction[0] / this.cameras[0].direction[2]));
@@ -14131,7 +14140,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53043" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57959" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
