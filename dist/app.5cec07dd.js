@@ -11097,7 +11097,13 @@ var gl_matrix_1 = require("gl-matrix");
 
 var tsx_create_element_1 = require("tsx-create-element");
 
-var dom_utils_1 = require("../common/dom-utils"); // In this scene we will draw a small scene with multiple textured models and we will explore Anisotropic filtering
+var dom_utils_1 = require("../common/dom-utils"); // This function creates a triangle wave, this is used to move the house model
+
+
+function triangle(x) {
+  var i = Math.floor(x);
+  return i % 2 == 0 ? x - i : 1 + i - x;
+} // In this scene we will draw a small scene with multiple textured models and we will explore Anisotropic filtering
 
 
 var TexturedModelsScene =
@@ -11114,6 +11120,7 @@ function (_super) {
     _this.coin_count = 0;
     _this.textures = {};
     _this.objectPosition = gl_matrix_1.vec3.fromValues(-2.6, -1.5, -10);
+    _this.time = 0;
     _this.anisotropic_filtering = 0; // This will hold the maximum number of samples that the anisotropic filtering is allowed to read. 1 is equivalent to isotropic filtering.
 
     return _this;
@@ -11159,6 +11166,13 @@ function (_super) {
     }, _a["coin-texture"] = {
       url: 'models/coin/coin.png',
       type: 'image'
+    }, //#beast
+    _a["beast-model"] = {
+      url: 'models/beast/beast.obj',
+      type: 'text'
+    }, _a["beast-texture"] = {
+      url: 'models/beast/beast.png',
+      type: 'image'
     }, _a));
   };
 
@@ -11183,6 +11197,7 @@ function (_super) {
       min: [0, 0],
       max: [100, 100]
     });
+    this.meshes['beast'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["beast-model"]);
     this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true); //health texture
 
     this.textures['health-texture'] = this.gl.createTexture();
@@ -11238,6 +11253,16 @@ function (_super) {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR); //beast texture
+
+    this.textures['beast-texture'] = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['beast-texture']);
+    this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 4);
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.game.loader.resources['beast-texture']);
+    this.gl.generateMipmap(this.gl.TEXTURE_2D);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR); // Anisotropic filtering is not supported by WebGL by default so we need to ask the context for the extension.
 
     this.anisotropy_ext = this.gl.getExtension('EXT_texture_filter_anisotropic'); // The device does not support anisotropic fltering, the extension will be null. So we need to check before using it.
@@ -11269,7 +11294,9 @@ function (_super) {
 
     this.health_postions = [gl_matrix_1.vec3.fromValues(-2, -1.5, -10), gl_matrix_1.vec3.fromValues(29, -1.5, 2), gl_matrix_1.vec3.fromValues(-10, -1.5, -25), gl_matrix_1.vec3.fromValues(23, -1.5, 8), gl_matrix_1.vec3.fromValues(-29, -1.5, -29)]; //put the coin
 
-    this.coin_postions = [gl_matrix_1.vec3.fromValues(-28, -1.5, 29), gl_matrix_1.vec3.fromValues(2.5, -1.5, 25), gl_matrix_1.vec3.fromValues(-14, -1.5, 24), gl_matrix_1.vec3.fromValues(-23, -1.5, -16), gl_matrix_1.vec3.fromValues(-19, -1.5, -29)];
+    this.coin_postions = [gl_matrix_1.vec3.fromValues(-28, -1.5, 29), gl_matrix_1.vec3.fromValues(2.5, -1.5, 25), gl_matrix_1.vec3.fromValues(-14, -1.5, 24), gl_matrix_1.vec3.fromValues(-23, -1.5, -16), gl_matrix_1.vec3.fromValues(-19, -1.5, -29)]; //put the beasts
+
+    this.beast_postions = [gl_matrix_1.vec3.fromValues(-9.9, -1.5, -9), gl_matrix_1.vec3.fromValues(-9.8, -1.5, 22.2), gl_matrix_1.vec3.fromValues(27, -1.5, -4.8), gl_matrix_1.vec3.fromValues(6.7, -1.5, 15)];
   };
 
   TexturedModelsScene.prototype.Collision = function () {
@@ -11295,6 +11322,8 @@ function (_super) {
 
   TexturedModelsScene.prototype.draw = function (deltaTime) {
     this.controller.update(deltaTime);
+    this.time += deltaTime; // Update time
+
     this.gl.viewport(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
     this.gl.scissor(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT); //prevent camer to go in y
@@ -11361,12 +11390,34 @@ function (_super) {
     this.programs['texture'].setUniform1i('texture_sampler', 0); // If anisotropic filtering is supported, we send the parameter to the texture paramters.
 
     if (this.anisotropy_ext) this.gl.texParameterf(this.gl.TEXTURE_2D, this.anisotropy_ext.TEXTURE_MAX_ANISOTROPY_EXT, this.anisotropic_filtering);
-    this.meshes['ground'].draw(this.gl.TRIANGLES); //draw Suzanne
+    this.meshes['ground'].draw(this.gl.TRIANGLES);
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['beast-texture']);
+    this.programs['texture'].setUniform1i('texture_sampler', 0);
+
+    for (var i = 0; i < this.beast_postions.length; i++) {
+      var beastMat = gl_matrix_1.mat4.clone(VP);
+      gl_matrix_1.mat4.translate(beastMat, beastMat, this.beast_postions[i]);
+      gl_matrix_1.mat4.translate(beastMat, beastMat, [5 * triangle(this.time / 1000), 0, 0]);
+      this.programs['texture'].setUniformMatrix4fv("MVP", false, beastMat);
+      this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
+      this.meshes['beast'].draw(this.gl.TRIANGLES);
+    } //draw Suzanne
+
 
     this.programs['color'].use();
     var suMat = gl_matrix_1.mat4.clone(VP);
     gl_matrix_1.mat4.translate(suMat, suMat, gl_matrix_1.vec3.fromValues(this.cameras[0].direction[0] * 2, 0, this.cameras[0].direction[2] * 2));
     gl_matrix_1.mat4.translate(suMat, suMat, gl_matrix_1.vec3.fromValues(this.cameras[0].position[0], -1, this.cameras[0].position[2]));
+    console.log(this.cameras[0].direction);
+    console.log(Math.atan(this.cameras[0].direction[0] / this.cameras[0].direction[2]));
+
+    if (this.cameras[0].direction[2] < 0) {
+      gl_matrix_1.mat4.rotateY(suMat, suMat, Math.PI + Math.atan(this.cameras[0].direction[0] / this.cameras[0].direction[2]));
+    } else {
+      gl_matrix_1.mat4.rotateY(suMat, suMat, Math.atan(this.cameras[0].direction[0] / this.cameras[0].direction[2]));
+    }
+
     this.programs['color'].setUniformMatrix4fv("MVP", false, suMat);
     this.programs['color'].setUniform4f("tint", [0, 1, 1, 1]);
     this.meshes['suzanne'].draw(this.gl.TRIANGLES);
@@ -14080,7 +14131,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50789" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53043" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
@@ -14258,15 +14309,3 @@ function hmrAcceptRun(bundle, id) {
 }
 },{}]},{},["node_modules/parcel-bundler/src/builtins/hmr-runtime.js","src/app.ts"], null)
 //# sourceMappingURL=/app.5cec07dd.js.map
-
-//////////////Timer///////////////
-var timeleft = 100;
-        var downloadTimer = setInterval(function () {
-            document.getElementById("Timer_p").innerHTML = timeleft;
-            timeleft -= 1;
-            if (timeleft <= 0) {
-                clearInterval(downloadTimer);
-                document.getElementById("Timer_p").innerHTML = "Finished"
-            }
-        }, 1000);
-   
