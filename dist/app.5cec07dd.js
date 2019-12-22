@@ -11117,7 +11117,7 @@ function (_super) {
 
     _this.programs = {};
     _this.meshes = {};
-    _this.health_count = 0;
+    _this.health_count = 3;
     _this.coin_count = 0;
     _this.textures = {};
     _this.objectPosition = gl_matrix_1.vec3.fromValues(-2.6, -1.5, -10);
@@ -11312,7 +11312,8 @@ function (_super) {
       this.cameras[0].position[2] = 31;
     } else if (this.cameras[0].position[2] < -31) {
       this.cameras[0].position[2] = -31;
-    }
+    } //collision with health
+
 
     for (var i = 0; i < this.Levels.Level1.health.length; i++) {
       if (Math.ceil(this.Levels.Level1.health[i][0]) == Math.ceil(this.objectPosition[0]) && Math.ceil(this.Levels.Level1.health[i][2]) == Math.ceil(this.objectPosition[2])) {
@@ -11320,13 +11321,22 @@ function (_super) {
         document.querySelector('#Health_p').innerHTML = this.health_count.toFixed();
         this.Levels.Level1.health.splice(i, 1);
       }
-    }
+    } //collision with coins
+
 
     for (var i = 0; i < this.Levels.Level1.coin.length; i++) {
       if (Math.ceil(this.Levels.Level1.coin[i][0]) == Math.ceil(this.objectPosition[0]) && Math.ceil(this.Levels.Level1.coin[i][2]) == Math.ceil(this.objectPosition[2])) {
         this.coin_count++;
         document.querySelector('#Score_p').innerHTML = this.coin_count.toFixed();
         this.Levels.Level1.coin.splice(i, 1);
+      }
+    } //collision with beasts
+
+
+    for (var i = 0; i < this.Levels.Level1.beast.length; i++) {
+      if (Math.ceil(this.Levels.Level1.beast[i][0] + 5 * triangle(this.time / 1000)) == Math.ceil(this.objectPosition[0]) && Math.ceil(this.Levels.Level1.beast[i][2]) == Math.ceil(this.objectPosition[2])) {
+        this.health_count--;
+        document.querySelector('#Health_p').innerHTML = this.health_count.toFixed();
       }
     }
   };

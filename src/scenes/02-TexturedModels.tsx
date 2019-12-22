@@ -29,7 +29,7 @@ export default class TexturedModelsScene extends Scene {
     health_postions: vec3[];
     coin_postions: vec3[];
     beast_postions: vec3[];
-    health_count: number = 0;
+    health_count: number = 3;
     coin_count: number = 0;
     textures: { [name: string]: WebGLTexture } = {};
 
@@ -221,6 +221,7 @@ export default class TexturedModelsScene extends Scene {
             this.cameras[0].position[2] = -31;
         }
         
+        //collision with health
         for (let i = 0; i < this.Levels.Level1.health.length; i++) {
 
             if (Math.ceil(this.Levels.Level1.health[i][0]) == Math.ceil(this.objectPosition[0])
@@ -233,6 +234,7 @@ export default class TexturedModelsScene extends Scene {
             }
         }
 
+        //collision with coins
         for (let i = 0; i < this.Levels.Level1.coin.length; i++) {
 
             if (Math.ceil(this.Levels.Level1.coin[i][0]) == Math.ceil(this.objectPosition[0])
@@ -241,6 +243,18 @@ export default class TexturedModelsScene extends Scene {
                 document.querySelector('#Score_p').innerHTML =
                     this.coin_count.toFixed();
                     this.Levels.Level1.coin.splice(i, 1);
+            }
+        }
+
+        
+        //collision with beasts
+        for (let i = 0; i < this.Levels.Level1.beast.length; i++) {
+
+            if (Math.ceil(this.Levels.Level1.beast[i][0] + (5 * triangle(this.time / 1000))) == Math.ceil(this.objectPosition[0])
+                && Math.ceil(this.Levels.Level1.beast[i][2]) == Math.ceil(this.objectPosition[2])) {
+                this.health_count--;
+                document.querySelector('#Health_p').innerHTML =
+                    this.health_count.toFixed();
             }
         }
     }
