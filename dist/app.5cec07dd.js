@@ -11097,8 +11097,9 @@ var gl_matrix_1 = require("gl-matrix");
 
 var tsx_create_element_1 = require("tsx-create-element");
 
-var dom_utils_1 = require("../common/dom-utils"); // This function creates a triangle wave, this is used to move the house model
+var dom_utils_1 = require("../common/dom-utils");
 
+; // This function creates a triangle wave, this is used to move the house model
 
 function triangle(x) {
   var i = Math.floor(x);
@@ -11173,6 +11174,10 @@ function (_super) {
     }, _a["beast-texture"] = {
       url: 'models/beast/beast.png',
       type: 'image'
+    }, //#levels
+    _a["Levels"] = {
+      url: 'data/Levels.json',
+      type: 'json'
     }, _a));
   };
 
@@ -11185,6 +11190,7 @@ function (_super) {
     this.programs['color'].attach(this.game.loader.resources["color.vert"], this.gl.VERTEX_SHADER);
     this.programs['color'].attach(this.game.loader.resources["color.frag"], this.gl.FRAGMENT_SHADER);
     this.programs['color'].link();
+    this.Levels = this.game.loader.resources["Levels"];
     this.meshes['ground'] = MeshUtils.Plane(this.gl, {
       min: [0, 0],
       max: [100, 100]
@@ -11290,13 +11296,7 @@ function (_super) {
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LEQUAL);
     this.gl.clearColor(0.88, 0.65, 0.15, 1);
-    this.setupControls(); //put the health
-
-    this.health_postions = [gl_matrix_1.vec3.fromValues(-2, -1.5, -10), gl_matrix_1.vec3.fromValues(29, -1.5, 2), gl_matrix_1.vec3.fromValues(-10, -1.5, -25), gl_matrix_1.vec3.fromValues(23, -1.5, 8), gl_matrix_1.vec3.fromValues(-29, -1.5, -29)]; //put the coin
-
-    this.coin_postions = [gl_matrix_1.vec3.fromValues(-28, -1.5, 29), gl_matrix_1.vec3.fromValues(2.5, -1.5, 25), gl_matrix_1.vec3.fromValues(-14, -1.5, 24), gl_matrix_1.vec3.fromValues(-23, -1.5, -16), gl_matrix_1.vec3.fromValues(-19, -1.5, -29)]; //put the beasts
-
-    this.beast_postions = [gl_matrix_1.vec3.fromValues(-9.9, -1.5, -9), gl_matrix_1.vec3.fromValues(-9.8, -1.5, 22.2), gl_matrix_1.vec3.fromValues(27, -1.5, -4.8), gl_matrix_1.vec3.fromValues(6.7, -1.5, 15)];
+    this.setupControls();
   };
 
   TexturedModelsScene.prototype.Collision = function () {
@@ -11314,19 +11314,19 @@ function (_super) {
       this.cameras[0].position[2] = -31;
     }
 
-    for (var i = 0; i < this.health_postions.length; i++) {
-      if (Math.ceil(this.health_postions[i][0]) == Math.ceil(this.objectPosition[0]) && Math.ceil(this.health_postions[i][2]) == Math.ceil(this.objectPosition[2])) {
+    for (var i = 0; i < this.Levels.Level1.health.length; i++) {
+      if (Math.ceil(this.Levels.Level1.health[i][0]) == Math.ceil(this.objectPosition[0]) && Math.ceil(this.Levels.Level1.health[i][2]) == Math.ceil(this.objectPosition[2])) {
         this.health_count++;
         document.querySelector('#Health_p').innerHTML = this.health_count.toFixed();
-        this.health_postions.splice(i, 1);
+        this.Levels.Level1.health.splice(i, 1);
       }
     }
 
-    for (var i = 0; i < this.coin_postions.length; i++) {
-      if (Math.ceil(this.coin_postions[i][0]) == Math.ceil(this.objectPosition[0]) && Math.ceil(this.coin_postions[i][2]) == Math.ceil(this.objectPosition[2])) {
+    for (var i = 0; i < this.Levels.Level1.coin.length; i++) {
+      if (Math.ceil(this.Levels.Level1.coin[i][0]) == Math.ceil(this.objectPosition[0]) && Math.ceil(this.Levels.Level1.coin[i][2]) == Math.ceil(this.objectPosition[2])) {
         this.coin_count++;
         document.querySelector('#Score_p').innerHTML = this.coin_count.toFixed();
-        this.coin_postions.splice(i, 1);
+        this.Levels.Level1.coin.splice(i, 1);
       }
     }
   };
@@ -11359,9 +11359,9 @@ function (_super) {
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['health-texture']);
     this.programs['texture'].setUniform1i('texture_sampler', 0);
 
-    for (var i = 0; i < this.health_postions.length; i++) {
+    for (var i = 0; i < this.Levels.Level1.health.length; i++) {
       var healthMat = gl_matrix_1.mat4.clone(VP);
-      gl_matrix_1.mat4.translate(healthMat, healthMat, this.health_postions[i]);
+      gl_matrix_1.mat4.translate(healthMat, healthMat, this.Levels.Level1.health[i]);
       gl_matrix_1.mat4.rotateX(healthMat, healthMat, Math.PI);
       gl_matrix_1.mat4.scale(healthMat, healthMat, [10, 10, 10]);
       this.programs['texture'].setUniformMatrix4fv("MVP", false, healthMat);
@@ -11383,9 +11383,9 @@ function (_super) {
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['coin-texture']);
     this.programs['texture'].setUniform1i('texture_sampler', 0);
 
-    for (var i = 0; i < this.coin_postions.length; i++) {
+    for (var i = 0; i < this.Levels.Level1.coin.length; i++) {
       var coinMat = gl_matrix_1.mat4.clone(VP);
-      gl_matrix_1.mat4.translate(coinMat, coinMat, this.coin_postions[i]);
+      gl_matrix_1.mat4.translate(coinMat, coinMat, this.Levels.Level1.coin[i]);
       gl_matrix_1.mat4.scale(coinMat, coinMat, [5, 5, 5]);
       this.programs['texture'].setUniformMatrix4fv("MVP", false, coinMat);
       this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
@@ -11409,9 +11409,9 @@ function (_super) {
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['beast-texture']);
     this.programs['texture'].setUniform1i('texture_sampler', 0);
 
-    for (var i = 0; i < this.beast_postions.length; i++) {
+    for (var i = 0; i < this.Levels.Level1.beast.length; i++) {
       var beastMat = gl_matrix_1.mat4.clone(VP);
-      gl_matrix_1.mat4.translate(beastMat, beastMat, this.beast_postions[i]);
+      gl_matrix_1.mat4.translate(beastMat, beastMat, this.Levels.Level1.beast[i]);
       gl_matrix_1.mat4.translate(beastMat, beastMat, [5 * triangle(this.time / 1000), 0, 0]);
       this.programs['texture'].setUniformMatrix4fv("MVP", false, beastMat);
       this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
@@ -14142,7 +14142,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57959" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61092" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

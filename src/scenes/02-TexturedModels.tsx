@@ -8,6 +8,12 @@ import { vec3, mat4 } from 'gl-matrix';
 import { createElement } from 'tsx-create-element';
 import { Vector, Selector } from '../common/dom-utils';
 
+interface Level {
+    coin: vec3[],
+    health:vec3[],
+    beast:vec3[]
+};
+
 // This function creates a triangle wave, this is used to move the house model
 function triangle(x: number): number {
     let i = Math.floor(x);
@@ -28,6 +34,8 @@ export default class TexturedModelsScene extends Scene {
     textures: { [name: string]: WebGLTexture } = {};
 
     objectPosition: vec3 = vec3.fromValues(-2.6, -1.5, -10);
+
+    Levels: {[name:string]:Level};
 
     time: number = 0;
 
@@ -58,7 +66,10 @@ export default class TexturedModelsScene extends Scene {
 
             //#beast
             ["beast-model"]: { url: 'models/beast/beast.obj', type: 'text' },
-            ["beast-texture"]: { url: 'models/beast/beast.png', type: 'image' }
+            ["beast-texture"]: { url: 'models/beast/beast.png', type: 'image' },
+            
+            //#levels
+            ["Levels"]:{url: 'data/Levels.json', type:'json'}
         });
     }
 
@@ -72,6 +83,8 @@ export default class TexturedModelsScene extends Scene {
         this.programs['color'].attach(this.game.loader.resources["color.vert"], this.gl.VERTEX_SHADER);
         this.programs['color'].attach(this.game.loader.resources["color.frag"], this.gl.FRAGMENT_SHADER);
         this.programs['color'].link();
+
+        this.Levels = this.game.loader.resources["Levels"];
 
         this.meshes['ground'] = MeshUtils.Plane(this.gl, { min: [0, 0], max: [100, 100] });
         this.meshes['maze'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["maze-model"]);
@@ -182,31 +195,6 @@ export default class TexturedModelsScene extends Scene {
 
         this.setupControls();
 
-        //put the health
-        this.health_postions = [
-            vec3.fromValues(-2, -1.5, -10),
-            vec3.fromValues(29, -1.5, 2),
-            vec3.fromValues(-10, -1.5, -25),
-            vec3.fromValues(23, -1.5, 8),
-            vec3.fromValues(-29, -1.5, -29)
-        ];
-
-        //put the coin
-        this.coin_postions = [
-            vec3.fromValues(-28, -1.5, 29),
-            vec3.fromValues(2.5, -1.5, 25),
-            vec3.fromValues(-14, -1.5, 24),
-            vec3.fromValues(-23, -1.5, -16),
-            vec3.fromValues(-19, -1.5, -29)
-        ];
-
-        //put the beasts
-        this.beast_postions = [
-            vec3.fromValues(-9.9, -1.5, -9),
-            vec3.fromValues(-9.8, -1.5, 22.2),
-            vec3.fromValues(27, -1.5, -4.8),
-            vec3.fromValues(6.7, -1.5, 15)
-        ];
     }
 
     public Collision() {
@@ -233,27 +221,26 @@ export default class TexturedModelsScene extends Scene {
             this.cameras[0].position[2] = -31;
         }
         
-        for (let i = 0; i < this.health_postions.length; i++) {
+        for (let i = 0; i < this.Levels.Level1.health.length; i++) {
 
-            if (Math.ceil(this.health_postions[i][0]) == Math.ceil(this.objectPosition[0])
-                && Math.ceil(this.health_postions[i][2]) == Math.ceil(this.objectPosition[2])) {
+            if (Math.ceil(this.Levels.Level1.health[i][0]) == Math.ceil(this.objectPosition[0])
+                && Math.ceil(this.Levels.Level1.health[i][2]) == Math.ceil(this.objectPosition[2])) {
                 this.health_count++;
                 document.querySelector('#Health_p').innerHTML =
 
                     this.health_count.toFixed();
-                this.health_postions.splice(i, 1);
-
+                    this.Levels.Level1.health.splice(i, 1);
             }
         }
 
-        for (let i = 0; i < this.coin_postions.length; i++) {
+        for (let i = 0; i < this.Levels.Level1.coin.length; i++) {
 
-            if (Math.ceil(this.coin_postions[i][0]) == Math.ceil(this.objectPosition[0])
-                && Math.ceil(this.coin_postions[i][2]) == Math.ceil(this.objectPosition[2])) {
+            if (Math.ceil(this.Levels.Level1.coin[i][0]) == Math.ceil(this.objectPosition[0])
+                && Math.ceil(this.Levels.Level1.coin[i][2]) == Math.ceil(this.objectPosition[2])) {
                 this.coin_count++;
                 document.querySelector('#Score_p').innerHTML =
                     this.coin_count.toFixed();
-                this.coin_postions.splice(i, 1);
+                    this.Levels.Level1.coin.splice(i, 1);
             }
         }
     }
@@ -294,9 +281,9 @@ export default class TexturedModelsScene extends Scene {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['health-texture']);
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
-        for (let i = 0; i < this.health_postions.length; i++) {
-            let healthMat = mat4.clone(VP);
-            mat4.translate(healthMat, healthMat, this.health_postions[i]);
+        for (let i = 0; i < this.Levels.Level1.health.length; i++) {
+            let healthMat = mat4.clone(VP);     
+            mat4.translate(healthMat, healthMat, this.Levels.Level1.health[i]);
             mat4.rotateX(healthMat, healthMat, Math.PI);
             mat4.scale(healthMat, healthMat, [10, 10, 10]);
 
@@ -325,9 +312,9 @@ export default class TexturedModelsScene extends Scene {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['coin-texture']);
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
-        for (let i = 0; i < this.coin_postions.length; i++) {
+        for (let i = 0; i < this.Levels.Level1.coin.length; i++) {
             let coinMat = mat4.clone(VP);
-            mat4.translate(coinMat, coinMat, this.coin_postions[i]);
+            mat4.translate(coinMat, coinMat, this.Levels.Level1.coin[i]);
             mat4.scale(coinMat, coinMat, [5, 5, 5]);
 
             this.programs['texture'].setUniformMatrix4fv("MVP", false, coinMat);
@@ -357,9 +344,9 @@ export default class TexturedModelsScene extends Scene {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['beast-texture']);
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
-        for (let i = 0; i < this.beast_postions.length; i++) {
+        for (let i = 0; i < this.Levels.Level1.beast.length; i++) {
             let beastMat = mat4.clone(VP);
-            mat4.translate(beastMat, beastMat, this.beast_postions[i]);
+            mat4.translate(beastMat, beastMat, this.Levels.Level1.beast[i]);
             mat4.translate(beastMat, beastMat, [5 * triangle(this.time / 1000), 0, 0]);
 
             this.programs['texture'].setUniformMatrix4fv("MVP", false, beastMat);
