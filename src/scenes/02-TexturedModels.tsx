@@ -68,6 +68,10 @@ export default class TexturedModelsScene extends Scene {
             ["beast-model"]: { url: 'models/beast/beast.obj', type: 'text' },
             ["beast-texture"]: { url: 'models/beast/beast.png', type: 'image' },
             
+            //#key
+            ["key-model"]: {url:'models/key/key.obj', type: 'text'},
+            ["key-texture"]: {url:'models/key/key.png', type:'image'},
+
             //#levels
             ["Levels"]:{url: 'data/Levels.json', type:'json'}
         });
@@ -93,6 +97,7 @@ export default class TexturedModelsScene extends Scene {
         this.meshes['coin'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["coin-model"]);
         this.meshes['ground'] = MeshUtils.Plane(this.gl, { min: [0, 0], max: [100, 100] });
         this.meshes['beast'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["beast-model"]);
+        this.meshes['key'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["key-model"]);
 
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
 
@@ -154,6 +159,17 @@ export default class TexturedModelsScene extends Scene {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['beast-texture']);
         this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 4);
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.game.loader.resources['beast-texture']);
+        this.gl.generateMipmap(this.gl.TEXTURE_2D);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
+
+        //key texture
+        this.textures['key-texture'] = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['key-texture']);
+        this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 4);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.game.loader.resources['key-texture']);
         this.gl.generateMipmap(this.gl.TEXTURE_2D);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
@@ -353,6 +369,23 @@ export default class TexturedModelsScene extends Scene {
 
         this.meshes['ground'].draw(this.gl.TRIANGLES);
 
+        //draw key
+        let keyMat = mat4.clone(VP);
+        mat4.translate(keyMat, keyMat, [29.7, -.5, 31]);
+        mat4.rotateY(keyMat, keyMat, Math.PI / 4 + Math.PI);
+        mat4.scale(keyMat,keyMat, [20, 20, 20]);
+
+        this.programs['texture'].setUniformMatrix4fv("MVP", false, keyMat);
+        this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
+
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['key-texture']);
+        this.programs['texture'].setUniform1i('texture_sampler', 0);
+        // If anisotropic filtering is supported, we send the parameter to the texture paramters.
+        if (this.anisotropy_ext) this.gl.texParameterf(this.gl.TEXTURE_2D, this.anisotropy_ext.TEXTURE_MAX_ANISOTROPY_EXT, this.anisotropic_filtering);
+
+        this.meshes['key'].draw(this.gl.TRIANGLES);
+        
         //draw beasts
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['beast-texture']);

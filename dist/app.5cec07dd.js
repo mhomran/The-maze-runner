@@ -11174,6 +11174,13 @@ function (_super) {
     }, _a["beast-texture"] = {
       url: 'models/beast/beast.png',
       type: 'image'
+    }, //#key
+    _a["key-model"] = {
+      url: 'models/key/key.obj',
+      type: 'text'
+    }, _a["key-texture"] = {
+      url: 'models/key/key.png',
+      type: 'image'
     }, //#levels
     _a["Levels"] = {
       url: 'data/Levels.json',
@@ -11204,6 +11211,7 @@ function (_super) {
       max: [100, 100]
     });
     this.meshes['beast'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["beast-model"]);
+    this.meshes['key'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["key-model"]);
     this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true); //health texture
 
     this.textures['health-texture'] = this.gl.createTexture();
@@ -11265,6 +11273,16 @@ function (_super) {
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['beast-texture']);
     this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 4);
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.game.loader.resources['beast-texture']);
+    this.gl.generateMipmap(this.gl.TEXTURE_2D);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR); //key texture
+
+    this.textures['key-texture'] = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['key-texture']);
+    this.gl.pixelStorei(this.gl.UNPACK_ALIGNMENT, 4);
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.game.loader.resources['key-texture']);
     this.gl.generateMipmap(this.gl.TEXTURE_2D);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
@@ -11413,7 +11431,20 @@ function (_super) {
     this.programs['texture'].setUniform1i('texture_sampler', 0); // If anisotropic filtering is supported, we send the parameter to the texture paramters.
 
     if (this.anisotropy_ext) this.gl.texParameterf(this.gl.TEXTURE_2D, this.anisotropy_ext.TEXTURE_MAX_ANISOTROPY_EXT, this.anisotropic_filtering);
-    this.meshes['ground'].draw(this.gl.TRIANGLES); //draw beasts
+    this.meshes['ground'].draw(this.gl.TRIANGLES); //draw key
+
+    var keyMat = gl_matrix_1.mat4.clone(VP);
+    gl_matrix_1.mat4.translate(keyMat, keyMat, [29.7, -.5, 31]);
+    gl_matrix_1.mat4.rotateY(keyMat, keyMat, Math.PI / 4 + Math.PI);
+    gl_matrix_1.mat4.scale(keyMat, keyMat, [20, 20, 20]);
+    this.programs['texture'].setUniformMatrix4fv("MVP", false, keyMat);
+    this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['key-texture']);
+    this.programs['texture'].setUniform1i('texture_sampler', 0); // If anisotropic filtering is supported, we send the parameter to the texture paramters.
+
+    if (this.anisotropy_ext) this.gl.texParameterf(this.gl.TEXTURE_2D, this.anisotropy_ext.TEXTURE_MAX_ANISOTROPY_EXT, this.anisotropic_filtering);
+    this.meshes['key'].draw(this.gl.TRIANGLES); //draw beasts
 
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['beast-texture']);
@@ -14152,7 +14183,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61092" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49992" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
