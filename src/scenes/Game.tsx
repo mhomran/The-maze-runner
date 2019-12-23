@@ -5,8 +5,6 @@ import * as MeshUtils from '../common/mesh-utils';
 import Camera from '../common/camera';
 import FlyCameraController from '../common/camera-controllers/fly-camera-controller';
 import { vec3, mat4 } from 'gl-matrix';
-import { createElement } from 'tsx-create-element';
-import { Vector, Selector } from '../common/dom-utils';
 
 interface Level {
     coin: vec3[],
@@ -50,7 +48,7 @@ function triangle(x: number): number {
 }
 
 // In this scene we will draw a small scene with multiple textured models and we will explore Anisotropic filtering
-export default class TexturedModelsScene extends Scene {
+export default class OurGame extends Scene {
     programs: { [name: string]: ShaderProgram } = {};
     cameras: Camera[];
     controller: FlyCameraController;
@@ -58,10 +56,11 @@ export default class TexturedModelsScene extends Scene {
     health_postions: vec3[];
     coin_postions: vec3[];
     beast_postions: vec3[];
-    health_count: number = 3;
+    health_count : number = 10;
     coin_count: number = 0;
     textures: { [name: string]: WebGLTexture } = {};
 
+    //to save suzanne position
     objectPosition: vec3 = vec3.fromValues(-2.6, -1.5, -10);
 
     Levels: {[name:string]:Level};
@@ -85,6 +84,7 @@ export default class TexturedModelsScene extends Scene {
     ];
 
     time: number = 0;
+  
 
     anisotropy_ext: EXT_texture_filter_anisotropic; // This will hold the anisotropic filtering extension
     anisotropic_filtering: number = 0; // This will hold the maximum number of samples that the anisotropic filtering is allowed to read. 1 is equivalent to isotropic filtering.
@@ -125,6 +125,8 @@ export default class TexturedModelsScene extends Scene {
     }
 
     public start(): void {
+        
+       
         this.programs['texture'] = new ShaderProgram(this.gl);
         this.programs['texture'].attach(this.game.loader.resources["texture.vert"], this.gl.VERTEX_SHADER);
         this.programs['texture'].attach(this.game.loader.resources["texture.frag"], this.gl.FRAGMENT_SHADER);
@@ -256,7 +258,7 @@ export default class TexturedModelsScene extends Scene {
 
         this.gl.clearColor(0.88, 0.65, 0.15, 1);
 
-        this.setupControls();
+       // this.setupControls();
 
     }
 
@@ -291,7 +293,6 @@ export default class TexturedModelsScene extends Scene {
                 && Math.ceil(this.Levels.Level1.health[i][2]) == Math.ceil(this.objectPosition[2])) {
                 this.health_count++;
                 document.querySelector('#Health_p').innerHTML =
-
                     this.health_count.toFixed();
                     this.Levels.Level1.health.splice(i, 1);
             }
@@ -316,10 +317,38 @@ export default class TexturedModelsScene extends Scene {
             if (Math.ceil(this.Levels.Level1.beast[i][0] + (5 * triangle(this.time / 1000))) == Math.ceil(this.objectPosition[0])
                 && Math.ceil(this.Levels.Level1.beast[i][2]) == Math.ceil(this.objectPosition[2])) {
                 this.health_count--;
+              
                 document.querySelector('#Health_p').innerHTML =
                     this.health_count.toFixed();
             }
         }
+        let x = this.GAME_CHECK();
+        if (x==1||x==3)
+        alert('Game over');
+        else if (x==2)
+        alert('ala wadak');
+       
+
+    }
+
+    public GAME_CHECK():number{
+
+        
+        if(this.health_count==0)
+        {
+            return 1;
+        }
+
+      if (Math.ceil(this.objectPosition[0])==30 &&Math.ceil(this.objectPosition[2])==31){
+          return 2;
+      }
+      if( document.querySelector('#Timer_p').innerHTML=="Finished")
+      {
+        document.querySelector('#Timer_p').innerHTML=="Finished";
+        return 3;
+      }
+
+      return 0;
     }
 
     public draw(deltaTime: number): void {
@@ -467,9 +496,9 @@ export default class TexturedModelsScene extends Scene {
         mat4.translate(keyMat, keyMat, [29.7, -.5, 31]);
         mat4.rotateY(keyMat, keyMat, Math.PI / 4 + Math.PI);
         mat4.scale(keyMat,keyMat, [20, 20, 20]);
-        this.programs['texture'].setUniform3f("material.diffuse", [0.6,0.5,0.4]);
-        this.programs['texture'].setUniform3f("material.specular", [0.7,0.4,0.6]);
-        this.programs['texture'].setUniform3f("material.ambient", [1.0,1.0,1.0]);
+        this.programs['texture'].setUniform3f("material.diffuse", [0.0,0.0,0.0]);
+        this.programs['texture'].setUniform3f("material.specular", [0.0,0.0,0.0]);
+        this.programs['texture'].setUniform3f("material.ambient", [0.0,0.0,0.0]);
         this.programs['texture'].setUniform1f("material.shininess", 2);
 
         this.programs['texture'].setUniformMatrix4fv("M", false, keyMat);
@@ -541,49 +570,11 @@ export default class TexturedModelsScene extends Scene {
         for (let key in this.textures)
             this.gl.deleteTexture(this.textures[key]);
         this.textures = {};
-        this.clearControls();
+       
     }
 
 
 
-    /////////////////////////////////////////////////////////
-    ////// ADD CONTROL TO THE WEBPAGE (NOT IMPORTNANT) //////
-    /////////////////////////////////////////////////////////
-    private setupControls() {
-        const controls = document.querySelector('#controls');
-
-        const RGBToHex = (rgb: [number, number, number]): string => {
-            let arraybuffer = new ArrayBuffer(4);
-            let dv = new DataView(arraybuffer);
-            dv.setUint8(3, 0);
-            dv.setUint8(2, rgb[0]);
-            dv.setUint8(1, rgb[1]);
-            dv.setUint8(0, rgb[2]);
-            return '#' + dv.getUint32(0, true).toString(16);
-        }
-
-        const HexToRGB = (hex: string): [number, number, number] => {
-            let arraybuffer = new ArrayBuffer(4);
-            let dv = new DataView(arraybuffer);
-            dv.setUint32(0, Number.parseInt(hex.slice(1), 16), true);
-            return [dv.getUint8(2), dv.getUint8(1), dv.getUint8(0)];
-        }
-
-        controls.appendChild(
-            <div>
-                <div className="control-row">
-                    <label className="control-label">Object Position</label>
-                    <Vector vector={this.objectPosition} />
-                </div>
-            </div>
-        );
-    }
-
-    private clearControls() {
-        const controls = document.querySelector('#controls');
-        controls.innerHTML = "";
-
-    }
 
 }
 //
