@@ -1,7 +1,7 @@
 // Here, we import the things we need from other script files 
 import Game from './common/game';
 import TextureScene from './scenes/01-Texture';
-import TexturedModelsScene from './scenes/02-TexturedModels';
+import TexturedModelsScene from './scenes/Game';
 import TerrianScene from './scenes/03-Terrain';
 import CubemapScene from './scenes/04-Cubemaps';
 import BlendingScene from './scenes/05-Blending';
