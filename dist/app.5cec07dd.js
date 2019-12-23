@@ -11099,6 +11099,9 @@ var tsx_create_element_1 = require("tsx-create-element");
 
 var dom_utils_1 = require("../common/dom-utils");
 
+;
+;
+;
 ; // This function creates a triangle wave, this is used to move the house model
 
 function triangle(x) {
@@ -11121,6 +11124,90 @@ function (_super) {
     _this.coin_count = 0;
     _this.textures = {};
     _this.objectPosition = gl_matrix_1.vec3.fromValues(-2.6, -1.5, -10);
+    _this.directional_lights = [{
+      diffuse: gl_matrix_1.vec3.fromValues(0.5, 0.5, 0.5),
+      specular: gl_matrix_1.vec3.fromValues(0.5, 0.5, 0.5),
+      ambient: gl_matrix_1.vec3.fromValues(0.1, 0.1, 0.1),
+      direction: gl_matrix_1.vec3.fromValues(-1, -1, -1)
+    }];
+    _this.point_lights = [{
+      diffuse: gl_matrix_1.vec3.fromValues(1, 0, 0),
+      specular: gl_matrix_1.vec3.fromValues(1, 0, 0),
+      ambient: gl_matrix_1.vec3.fromValues(0.1, 0.0, 0.0),
+      position: gl_matrix_1.vec3.fromValues(+6, +1, +0),
+      attenuation_quadratic: 1,
+      attenuation_linear: 0,
+      attenuation_constant: 0
+    }, {
+      diffuse: gl_matrix_1.vec3.fromValues(0, 1, 0),
+      specular: gl_matrix_1.vec3.fromValues(0, 1, 0),
+      ambient: gl_matrix_1.vec3.fromValues(0.0, 0.1, 0.0),
+      position: gl_matrix_1.vec3.fromValues(-6, +1, +0),
+      attenuation_quadratic: 1,
+      attenuation_linear: 0,
+      attenuation_constant: 0
+    }, {
+      diffuse: gl_matrix_1.vec3.fromValues(0, 0, 1),
+      specular: gl_matrix_1.vec3.fromValues(0, 0, 1),
+      ambient: gl_matrix_1.vec3.fromValues(0.0, 0.0, 0.1),
+      position: gl_matrix_1.vec3.fromValues(+0, +1, +6),
+      attenuation_quadratic: 1,
+      attenuation_linear: 0,
+      attenuation_constant: 0
+    }, {
+      diffuse: gl_matrix_1.vec3.fromValues(1, 1, 0),
+      specular: gl_matrix_1.vec3.fromValues(1, 1, 0),
+      ambient: gl_matrix_1.vec3.fromValues(0.1, 0.1, 0.0),
+      position: gl_matrix_1.vec3.fromValues(+0, +1, -6),
+      attenuation_quadratic: 1,
+      attenuation_linear: 0,
+      attenuation_constant: 0
+    }];
+    _this.spot_lights = [{
+      diffuse: gl_matrix_1.vec3.fromValues(5, 0, 0),
+      specular: gl_matrix_1.vec3.fromValues(5, 0, 0),
+      ambient: gl_matrix_1.vec3.fromValues(0.1, 0.0, 0.0),
+      position: gl_matrix_1.vec3.fromValues(29.7, 4, 31),
+      direction: gl_matrix_1.vec3.fromValues(0, -1, 0),
+      attenuation_quadratic: 1,
+      attenuation_linear: 0,
+      attenuation_constant: 0,
+      inner_cone: 0.25 * Math.PI,
+      outer_cone: 0.3 * Math.PI
+    }, {
+      diffuse: gl_matrix_1.vec3.fromValues(0, 5, 0),
+      specular: gl_matrix_1.vec3.fromValues(0, 5, 0),
+      ambient: gl_matrix_1.vec3.fromValues(0.0, 0.1, 0.0),
+      position: gl_matrix_1.vec3.fromValues(-3, +1, +3),
+      direction: gl_matrix_1.vec3.fromValues(+1, 0, -1),
+      attenuation_quadratic: 1,
+      attenuation_linear: 0,
+      attenuation_constant: 0,
+      inner_cone: 0.25 * Math.PI,
+      outer_cone: 0.3 * Math.PI
+    }, {
+      diffuse: gl_matrix_1.vec3.fromValues(0, 0, 5),
+      specular: gl_matrix_1.vec3.fromValues(0, 0, 5),
+      ambient: gl_matrix_1.vec3.fromValues(0.0, 0.0, 0.1),
+      position: gl_matrix_1.vec3.fromValues(+3, +1, -3),
+      direction: gl_matrix_1.vec3.fromValues(-1, 0, +1),
+      attenuation_quadratic: 1,
+      attenuation_linear: 0,
+      attenuation_constant: 0,
+      inner_cone: 0.25 * Math.PI,
+      outer_cone: 0.3 * Math.PI
+    }, {
+      diffuse: gl_matrix_1.vec3.fromValues(5, 5, 0),
+      specular: gl_matrix_1.vec3.fromValues(5, 5, 0),
+      ambient: gl_matrix_1.vec3.fromValues(0.1, 0.1, 0.0),
+      position: gl_matrix_1.vec3.fromValues(-3, +1, -3),
+      direction: gl_matrix_1.vec3.fromValues(+1, 0, +1),
+      attenuation_quadratic: 1,
+      attenuation_linear: 0,
+      attenuation_constant: 0,
+      inner_cone: 0.25 * Math.PI,
+      outer_cone: 0.3 * Math.PI
+    }];
     _this.time = 0;
     _this.anisotropic_filtering = 0; // This will hold the maximum number of samples that the anisotropic filtering is allowed to read. 1 is equivalent to isotropic filtering.
 
@@ -11369,38 +11456,105 @@ function (_super) {
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT); //prevent camer to go in y
 
     this.cameras[0].position[1] = 1;
-    this.drawScene(this.cameras[0].ViewProjectionMatrix); // This will enable the scissor test (now we can restrict WebGL to never modify pixels outside a specific rectangle in the screen)
+    this.drawScene(this.cameras[0]); // This will enable the scissor test (now we can restrict WebGL to never modify pixels outside a specific rectangle in the screen)
 
     this.gl.enable(this.gl.SCISSOR_TEST);
     this.gl.viewport(0, this.gl.drawingBufferHeight - 200, 200, 200);
     this.gl.scissor(0, this.gl.drawingBufferHeight - 200, 200, 200);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-    this.drawScene(this.cameras[1].ViewProjectionMatrix); // Draw the scene from the Top camera
+    this.drawScene(this.cameras[1]); // Draw the scene from the Top camera
 
     this.Collision();
   };
 
-  TexturedModelsScene.prototype.drawScene = function (VP) {
-    this.programs['texture'].use(); //draw health        
+  TexturedModelsScene.prototype.drawScene = function (Camera) {
+    var _this = this;
+
+    var _loop_1 = function _loop_1(key) {
+      console.log(key);
+      this_1.programs[key].use();
+      this_1.programs[key].setUniformMatrix4fv("VP", false, Camera.ViewProjectionMatrix);
+      this_1.programs[key].setUniform3f("cam_position", Camera.position); // For each light type, send their properties (remember to normalize the light direction)
+
+      this_1.directional_lights.forEach(function (light, i) {
+        _this.programs[key].setUniform3f("directional_lights[" + i + "].diffuse", light.diffuse);
+
+        _this.programs[key].setUniform3f("directional_lights[" + i + "].specular", light.specular);
+
+        _this.programs[key].setUniform3f("directional_lights[" + i + "].ambient", light.ambient);
+
+        _this.programs[key].setUniform3f("directional_lights[" + i + "].direction", gl_matrix_1.vec3.normalize(gl_matrix_1.vec3.create(), light.direction));
+      });
+      this_1.point_lights.forEach(function (light, i) {
+        _this.programs[key].setUniform3f("point_lights[" + i + "].diffuse", light.diffuse);
+
+        _this.programs[key].setUniform3f("point_lights[" + i + "].specular", light.specular);
+
+        _this.programs[key].setUniform3f("point_lights[" + i + "].ambient", light.ambient);
+
+        _this.programs[key].setUniform3f("point_lights[" + i + "].position", light.position);
+
+        _this.programs[key].setUniform1f("point_lights[" + i + "].attenuation_quadratic", light.attenuation_quadratic);
+
+        _this.programs[key].setUniform1f("point_lights[" + i + "].attenuation_linear", light.attenuation_linear);
+
+        _this.programs[key].setUniform1f("point_lights[" + i + "].attenuation_constant", light.attenuation_constant);
+      });
+      this_1.spot_lights.forEach(function (light, i) {
+        _this.programs[key].setUniform3f("spot_lights[" + i + "].diffuse", light.diffuse);
+
+        _this.programs[key].setUniform3f("spot_lights[" + i + "].specular", light.specular);
+
+        _this.programs[key].setUniform3f("spot_lights[" + i + "].ambient", light.ambient);
+
+        _this.programs[key].setUniform3f("spot_lights[" + i + "].position", light.position);
+
+        _this.programs[key].setUniform3f("spot_lights[" + i + "].direction", gl_matrix_1.vec3.normalize(gl_matrix_1.vec3.create(), light.direction));
+
+        _this.programs[key].setUniform1f("spot_lights[" + i + "].attenuation_quadratic", light.attenuation_quadratic);
+
+        _this.programs[key].setUniform1f("spot_lights[" + i + "].attenuation_linear", light.attenuation_linear);
+
+        _this.programs[key].setUniform1f("spot_lights[" + i + "].attenuation_constant", light.attenuation_constant);
+
+        _this.programs[key].setUniform1f("spot_lights[" + i + "].inner_cone", light.inner_cone);
+
+        _this.programs[key].setUniform1f("spot_lights[" + i + "].outer_cone", light.outer_cone);
+      });
+    };
+
+    var this_1 = this;
+
+    for (var key in this.programs) {
+      _loop_1(key);
+    }
+
+    this.programs['texture'].use();
+    this.programs['texture'].setUniform3f("material.diffuse", [0.0, 0.0, 0.0]);
+    this.programs['texture'].setUniform3f("material.specular", [0.0, 0.0, 0.0]);
+    this.programs['texture'].setUniform3f("material.ambient", [0.0, 0.0, 0.0]);
+    this.programs['texture'].setUniform1f("material.shininess", 2); //draw health        
 
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['health-texture']);
     this.programs['texture'].setUniform1i('texture_sampler', 0);
 
     for (var i = 0; i < this.Levels.Level1.health.length; i++) {
-      var healthMat = gl_matrix_1.mat4.clone(VP);
+      var healthMat = gl_matrix_1.mat4.create();
       gl_matrix_1.mat4.translate(healthMat, healthMat, this.Levels.Level1.health[i]);
       gl_matrix_1.mat4.rotateX(healthMat, healthMat, Math.PI);
       gl_matrix_1.mat4.scale(healthMat, healthMat, [10, 10, 10]);
-      this.programs['texture'].setUniformMatrix4fv("MVP", false, healthMat);
+      this.programs['texture'].setUniformMatrix4fv("M", false, healthMat);
+      this.programs['texture'].setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), healthMat));
       this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
       this.meshes['health'].draw(this.gl.TRIANGLES);
     } //draw maze
 
 
-    var mazeMat = gl_matrix_1.mat4.clone(VP);
+    var mazeMat = gl_matrix_1.mat4.create();
     gl_matrix_1.mat4.scale(mazeMat, mazeMat, [.5, .5, .5]);
-    this.programs['texture'].setUniformMatrix4fv("MVP", false, mazeMat);
+    this.programs['texture'].setUniformMatrix4fv("M", false, mazeMat);
+    this.programs['texture'].setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), mazeMat));
     this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['maze-texture']);
@@ -11412,19 +11566,21 @@ function (_super) {
     this.programs['texture'].setUniform1i('texture_sampler', 0);
 
     for (var i = 0; i < this.Levels.Level1.coin.length; i++) {
-      var coinMat = gl_matrix_1.mat4.clone(VP);
+      var coinMat = gl_matrix_1.mat4.create();
       gl_matrix_1.mat4.translate(coinMat, coinMat, this.Levels.Level1.coin[i]);
       gl_matrix_1.mat4.scale(coinMat, coinMat, [5, 5, 5]);
-      this.programs['texture'].setUniformMatrix4fv("MVP", false, coinMat);
+      this.programs['texture'].setUniformMatrix4fv("M", false, coinMat);
+      this.programs['texture'].setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), coinMat));
       this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
       this.meshes['coin'].draw(this.gl.TRIANGLES);
     } //draw ground
 
 
-    var groundMat = gl_matrix_1.mat4.clone(VP);
+    var groundMat = gl_matrix_1.mat4.create();
     gl_matrix_1.mat4.translate(groundMat, groundMat, [0, -2, 0]);
     gl_matrix_1.mat4.scale(groundMat, groundMat, [100, 1, 100]);
-    this.programs['texture'].setUniformMatrix4fv("MVP", false, groundMat);
+    this.programs['texture'].setUniformMatrix4fv("M", false, groundMat);
+    this.programs['texture'].setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), groundMat));
     this.programs['texture'].setUniform4f("tint", [1, 0, 0, 1]);
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['ground']);
@@ -11433,11 +11589,16 @@ function (_super) {
     if (this.anisotropy_ext) this.gl.texParameterf(this.gl.TEXTURE_2D, this.anisotropy_ext.TEXTURE_MAX_ANISOTROPY_EXT, this.anisotropic_filtering);
     this.meshes['ground'].draw(this.gl.TRIANGLES); //draw key
 
-    var keyMat = gl_matrix_1.mat4.clone(VP);
+    var keyMat = gl_matrix_1.mat4.create();
     gl_matrix_1.mat4.translate(keyMat, keyMat, [29.7, -.5, 31]);
     gl_matrix_1.mat4.rotateY(keyMat, keyMat, Math.PI / 4 + Math.PI);
     gl_matrix_1.mat4.scale(keyMat, keyMat, [20, 20, 20]);
-    this.programs['texture'].setUniformMatrix4fv("MVP", false, keyMat);
+    this.programs['texture'].setUniform3f("material.diffuse", [0.6, 0.5, 0.4]);
+    this.programs['texture'].setUniform3f("material.specular", [0.7, 0.4, 0.6]);
+    this.programs['texture'].setUniform3f("material.ambient", [1.0, 1.0, 1.0]);
+    this.programs['texture'].setUniform1f("material.shininess", 2);
+    this.programs['texture'].setUniformMatrix4fv("M", false, keyMat);
+    this.programs['texture'].setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), keyMat));
     this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['key-texture']);
@@ -11451,17 +11612,21 @@ function (_super) {
     this.programs['texture'].setUniform1i('texture_sampler', 0);
 
     for (var i = 0; i < this.Levels.Level1.beast.length; i++) {
-      var beastMat = gl_matrix_1.mat4.clone(VP);
+      var beastMat = gl_matrix_1.mat4.create();
       gl_matrix_1.mat4.translate(beastMat, beastMat, this.Levels.Level1.beast[i]);
       gl_matrix_1.mat4.translate(beastMat, beastMat, [5 * triangle(this.time / 1000), 0, 0]);
-      this.programs['texture'].setUniformMatrix4fv("MVP", false, beastMat);
+      this.programs['texture'].setUniform3f("material.diffuse", [0.0, 0.0, 0.0]);
+      this.programs['texture'].setUniform3f("material.specular", [0.0, 0.0, 0.0]);
+      this.programs['texture'].setUniform3f("material.ambient", [0.0, 0.0, 0.0]);
+      this.programs['texture'].setUniformMatrix4fv("M", false, beastMat);
+      this.programs['texture'].setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), beastMat));
       this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
       this.meshes['beast'].draw(this.gl.TRIANGLES);
     } //draw Suzanne
 
 
     this.programs['color'].use();
-    var suMat = gl_matrix_1.mat4.clone(VP);
+    var suMat = gl_matrix_1.mat4.create();
     gl_matrix_1.mat4.translate(suMat, suMat, this.objectPosition);
 
     if (this.cameras[0].direction[2] < 0) {
@@ -11470,7 +11635,12 @@ function (_super) {
       gl_matrix_1.mat4.rotateY(suMat, suMat, Math.atan(this.cameras[0].direction[0] / this.cameras[0].direction[2]));
     }
 
-    this.programs['color'].setUniformMatrix4fv("MVP", false, suMat);
+    this.programs['color'].setUniform3f("material.diffuse", [0.5, 0.5, 0.5]);
+    this.programs['color'].setUniform3f("material.specular", [0.2, 0.2, 0.2]);
+    this.programs['color'].setUniform3f("material.ambient", [0.6, 0.5, 0.6]);
+    this.programs['color'].setUniform1f("material.shininess", 2);
+    this.programs['color'].setUniformMatrix4fv("M", false, suMat);
+    this.programs['color'].setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), suMat));
     this.programs['color'].setUniform4f("tint", [0, 1, 1, 1]);
     this.meshes['suzanne'].draw(this.gl.TRIANGLES);
   };
@@ -14183,7 +14353,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49992" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64264" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

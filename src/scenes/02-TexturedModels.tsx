@@ -13,6 +13,35 @@ interface Level {
     health:vec3[],
     beast:vec3[]
 };
+interface DirectionalLight {
+    diffuse: vec3,
+    specular: vec3,
+    ambient: vec3,
+    direction: vec3
+};
+
+interface PointLight {
+    diffuse: vec3,
+    specular: vec3,
+    ambient: vec3,
+    position: vec3,
+    attenuation_quadratic: number,
+    attenuation_linear: number,
+    attenuation_constant: number
+};
+
+interface SpotLight {
+    diffuse: vec3,
+    specular: vec3,
+    ambient: vec3,
+    position: vec3,
+    direction: vec3,
+    attenuation_quadratic: number,
+    attenuation_linear: number,
+    attenuation_constant: number,
+    inner_cone: number,
+    outer_cone: number
+};
 
 // This function creates a triangle wave, this is used to move the house model
 function triangle(x: number): number {
@@ -36,6 +65,24 @@ export default class TexturedModelsScene extends Scene {
     objectPosition: vec3 = vec3.fromValues(-2.6, -1.5, -10);
 
     Levels: {[name:string]:Level};
+
+    directional_lights: DirectionalLight[] = [
+        {diffuse: vec3.fromValues(0.5,0.5,0.5), specular:vec3.fromValues(0.5,0.5,0.5), ambient:vec3.fromValues(0.1,0.1,0.1), direction:vec3.fromValues(-1,-1,-1) }
+    ];
+
+    point_lights: PointLight[] = [
+        { diffuse: vec3.fromValues(1,0,0), specular:vec3.fromValues(1,0,0), ambient:vec3.fromValues(0.1,0.0,0.0), position:vec3.fromValues(+6,+1,+0), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0 },
+        {  diffuse: vec3.fromValues(0,1,0), specular:vec3.fromValues(0,1,0), ambient:vec3.fromValues(0.0,0.1,0.0), position:vec3.fromValues(-6,+1,+0), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0 },
+        {  diffuse: vec3.fromValues(0,0,1), specular:vec3.fromValues(0,0,1), ambient:vec3.fromValues(0.0,0.0,0.1), position:vec3.fromValues(+0,+1,+6), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0 },
+        { diffuse: vec3.fromValues(1,1,0), specular:vec3.fromValues(1,1,0), ambient:vec3.fromValues(0.1,0.1,0.0), position:vec3.fromValues(+0,+1,-6), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0 },
+    ];
+
+    spot_lights: SpotLight[] = [
+        { diffuse: vec3.fromValues(5,0,0), specular:vec3.fromValues(5,0,0), ambient:vec3.fromValues(0.1,0.0,0.0), position:vec3.fromValues(29.7, 4, 31), direction:vec3.fromValues(0,-1,0), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0, inner_cone: 0.25*Math.PI, outer_cone: 0.3*Math.PI },
+        {  diffuse: vec3.fromValues(0,5,0), specular:vec3.fromValues(0,5,0), ambient:vec3.fromValues(0.0,0.1,0.0), position:vec3.fromValues(-3,+1,+3), direction:vec3.fromValues(+1,0,-1), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0, inner_cone: 0.25*Math.PI, outer_cone: 0.3*Math.PI  },
+        { diffuse: vec3.fromValues(0,0,5), specular:vec3.fromValues(0,0,5), ambient:vec3.fromValues(0.0,0.0,0.1), position:vec3.fromValues(+3,+1,-3), direction:vec3.fromValues(-1,0,+1), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0, inner_cone: 0.25*Math.PI, outer_cone: 0.3*Math.PI  },
+        { diffuse: vec3.fromValues(5,5,0), specular:vec3.fromValues(5,5,0), ambient:vec3.fromValues(0.1,0.1,0.0), position:vec3.fromValues(-3,+1,-3), direction:vec3.fromValues(+1,0,+1), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0, inner_cone: 0.25*Math.PI, outer_cone: 0.3*Math.PI  },
+    ];
 
     time: number = 0;
 
@@ -289,7 +336,7 @@ export default class TexturedModelsScene extends Scene {
         //prevent camer to go in y
         this.cameras[0].position[1] = 1;
 
-        this.drawScene(this.cameras[0].ViewProjectionMatrix);
+        this.drawScene(this.cameras[0]);
 
         // This will enable the scissor test (now we can restrict WebGL to never modify pixels outside a specific rectangle in the screen)
         this.gl.enable(this.gl.SCISSOR_TEST);
@@ -298,13 +345,55 @@ export default class TexturedModelsScene extends Scene {
         this.gl.scissor(0, this.gl.drawingBufferHeight - 200, 200, 200);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-        this.drawScene(this.cameras[1].ViewProjectionMatrix); // Draw the scene from the Top camera
+        this.drawScene(this.cameras[1]); // Draw the scene from the Top camera
 
         this.Collision();
     }
 
-    private drawScene(VP: mat4) {
+    private drawScene(Camera: Camera) {
+            for (let key in this.programs)
+     {
+         console.log(key);
+         this.programs[key].use();
+         this.programs[key].setUniformMatrix4fv("VP", false, Camera.ViewProjectionMatrix);
+         this.programs[key].setUniform3f("cam_position", Camera.position);
+         
+         // For each light type, send their properties (remember to normalize the light direction)
+         this.directional_lights.forEach((light, i)=>{
+             this.programs[key].setUniform3f(`directional_lights[${i}].diffuse`, light.diffuse);
+             this.programs[key].setUniform3f(`directional_lights[${i}].specular`, light.specular);
+             this.programs[key].setUniform3f(`directional_lights[${i}].ambient`, light.ambient);
+             this.programs[key].setUniform3f(`directional_lights[${i}].direction`, vec3.normalize(vec3.create(), light.direction));
+         });
+         this.point_lights.forEach((light, i)=>{
+             this.programs[key].setUniform3f(`point_lights[${i}].diffuse`, light.diffuse);
+             this.programs[key].setUniform3f(`point_lights[${i}].specular`, light.specular);
+             this.programs[key].setUniform3f(`point_lights[${i}].ambient`, light.ambient);
+             this.programs[key].setUniform3f(`point_lights[${i}].position`, light.position);
+             this.programs[key].setUniform1f(`point_lights[${i}].attenuation_quadratic`, light.attenuation_quadratic);
+             this.programs[key].setUniform1f(`point_lights[${i}].attenuation_linear`, light.attenuation_linear);
+             this.programs[key].setUniform1f(`point_lights[${i}].attenuation_constant`, light.attenuation_constant);
+         });
+         this.spot_lights.forEach((light, i)=>{
+             this.programs[key].setUniform3f(`spot_lights[${i}].diffuse`, light.diffuse);
+             this.programs[key].setUniform3f(`spot_lights[${i}].specular`, light.specular);
+             this.programs[key].setUniform3f(`spot_lights[${i}].ambient`, light.ambient);
+             this.programs[key].setUniform3f(`spot_lights[${i}].position`, light.position);
+             this.programs[key].setUniform3f(`spot_lights[${i}].direction`, vec3.normalize(vec3.create(), light.direction));
+             this.programs[key].setUniform1f(`spot_lights[${i}].attenuation_quadratic`, light.attenuation_quadratic);
+             this.programs[key].setUniform1f(`spot_lights[${i}].attenuation_linear`, light.attenuation_linear);
+             this.programs[key].setUniform1f(`spot_lights[${i}].attenuation_constant`, light.attenuation_constant);
+             this.programs[key].setUniform1f(`spot_lights[${i}].inner_cone`, light.inner_cone);
+             this.programs[key].setUniform1f(`spot_lights[${i}].outer_cone`, light.outer_cone);
+         });
+     }
+  
+        
         this.programs['texture'].use();
+        this.programs['texture'].setUniform3f("material.diffuse", [0.0,0.0,0.0]);
+        this.programs['texture'].setUniform3f("material.specular", [0.0,0.0,0.0]);
+        this.programs['texture'].setUniform3f("material.ambient", [0.0,0.0,0.0]);
+        this.programs['texture'].setUniform1f("material.shininess", 2);
 
         //draw health        
         this.gl.activeTexture(this.gl.TEXTURE0);
@@ -312,22 +401,24 @@ export default class TexturedModelsScene extends Scene {
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
         for (let i = 0; i < this.Levels.Level1.health.length; i++) {
-            let healthMat = mat4.clone(VP);     
+            let healthMat = mat4.create();     
             mat4.translate(healthMat, healthMat, this.Levels.Level1.health[i]);
             mat4.rotateX(healthMat, healthMat, Math.PI);
             mat4.scale(healthMat, healthMat, [10, 10, 10]);
 
-            this.programs['texture'].setUniformMatrix4fv("MVP", false, healthMat);
+            this.programs['texture'].setUniformMatrix4fv("M", false, healthMat);
+            this.programs['texture'].setUniformMatrix4fv("M_it", true, mat4.invert(mat4.create(), healthMat));
             this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
 
             this.meshes['health'].draw(this.gl.TRIANGLES);
         }
 
         //draw maze
-        let mazeMat = mat4.clone(VP);
+        let mazeMat = mat4.create();
         mat4.scale(mazeMat, mazeMat, [.5, .5, .5]);
 
-        this.programs['texture'].setUniformMatrix4fv("MVP", false, mazeMat);
+        this.programs['texture'].setUniformMatrix4fv("M", false, mazeMat);
+        this.programs['texture'].setUniformMatrix4fv("M_it", true, mat4.invert(mat4.create(),mazeMat));
         this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
 
         this.gl.activeTexture(this.gl.TEXTURE0);
@@ -343,22 +434,24 @@ export default class TexturedModelsScene extends Scene {
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
         for (let i = 0; i < this.Levels.Level1.coin.length; i++) {
-            let coinMat = mat4.clone(VP);
+            let coinMat = mat4.create();
             mat4.translate(coinMat, coinMat, this.Levels.Level1.coin[i]);
             mat4.scale(coinMat, coinMat, [5, 5, 5]);
 
-            this.programs['texture'].setUniformMatrix4fv("MVP", false, coinMat);
+            this.programs['texture'].setUniformMatrix4fv("M", false, coinMat);
+            this.programs['texture'].setUniformMatrix4fv("M_it", true, mat4.invert(mat4.create(), coinMat));
             this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
 
             this.meshes['coin'].draw(this.gl.TRIANGLES);
         }
 
         //draw ground
-        let groundMat = mat4.clone(VP);
+        let groundMat = mat4.create();
         mat4.translate(groundMat, groundMat, [0, -2, 0]);
         mat4.scale(groundMat, groundMat, [100, 1, 100]);
 
-        this.programs['texture'].setUniformMatrix4fv("MVP", false, groundMat);
+        this.programs['texture'].setUniformMatrix4fv("M", false, groundMat);
+        this.programs['texture'].setUniformMatrix4fv("M_it", true, mat4.invert(mat4.create(), groundMat));
         this.programs['texture'].setUniform4f("tint", [1, 0, 0, 1]);
 
         this.gl.activeTexture(this.gl.TEXTURE0);
@@ -370,12 +463,17 @@ export default class TexturedModelsScene extends Scene {
         this.meshes['ground'].draw(this.gl.TRIANGLES);
 
         //draw key
-        let keyMat = mat4.clone(VP);
+        let keyMat = mat4.create();
         mat4.translate(keyMat, keyMat, [29.7, -.5, 31]);
         mat4.rotateY(keyMat, keyMat, Math.PI / 4 + Math.PI);
         mat4.scale(keyMat,keyMat, [20, 20, 20]);
+        this.programs['texture'].setUniform3f("material.diffuse", [0.6,0.5,0.4]);
+        this.programs['texture'].setUniform3f("material.specular", [0.7,0.4,0.6]);
+        this.programs['texture'].setUniform3f("material.ambient", [1.0,1.0,1.0]);
+        this.programs['texture'].setUniform1f("material.shininess", 2);
 
-        this.programs['texture'].setUniformMatrix4fv("MVP", false, keyMat);
+        this.programs['texture'].setUniformMatrix4fv("M", false, keyMat);
+        this.programs['texture'].setUniformMatrix4fv("M_it", true, mat4.invert(mat4.create(), keyMat));
         this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
 
         this.gl.activeTexture(this.gl.TEXTURE0);
@@ -392,11 +490,16 @@ export default class TexturedModelsScene extends Scene {
         this.programs['texture'].setUniform1i('texture_sampler', 0);
 
         for (let i = 0; i < this.Levels.Level1.beast.length; i++) {
-            let beastMat = mat4.clone(VP);
+            let beastMat = mat4.create();
             mat4.translate(beastMat, beastMat, this.Levels.Level1.beast[i]);
             mat4.translate(beastMat, beastMat, [5 * triangle(this.time / 1000), 0, 0]);
 
-            this.programs['texture'].setUniformMatrix4fv("MVP", false, beastMat);
+            this.programs['texture'].setUniform3f("material.diffuse", [0.0,0.0,0.0]);
+        this.programs['texture'].setUniform3f("material.specular", [0.0,0.0,0.0]);
+        this.programs['texture'].setUniform3f("material.ambient", [0.0,0.0,0.0]);
+
+            this.programs['texture'].setUniformMatrix4fv("M", false, beastMat);
+            this.programs['texture'].setUniformMatrix4fv("M_it", true, mat4.invert(mat4.create(), beastMat));
             this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
 
             this.meshes['beast'].draw(this.gl.TRIANGLES);
@@ -404,9 +507,8 @@ export default class TexturedModelsScene extends Scene {
 
         //draw Suzanne
         this.programs['color'].use();
-
-        let suMat = mat4.clone(VP);
-
+        
+        let suMat = mat4.create();
         mat4.translate(suMat, suMat, this.objectPosition);
 
         if (this.cameras[0].direction[2] < 0) {
@@ -417,8 +519,13 @@ export default class TexturedModelsScene extends Scene {
             mat4.rotateY(suMat, suMat, Math.atan(this.cameras[0].direction[0] /
                 this.cameras[0].direction[2]));
         }
+        this.programs['color'].setUniform3f("material.diffuse", [0.5,0.5,0.5]);
+        this.programs['color'].setUniform3f("material.specular", [0.2,0.2,0.2]);
+        this.programs['color'].setUniform3f("material.ambient", [0.6,0.5,0.6]);
+        this.programs['color'].setUniform1f("material.shininess", 2);
 
-        this.programs['color'].setUniformMatrix4fv("MVP", false, suMat);
+        this.programs['color'].setUniformMatrix4fv("M", false, suMat);
+        this.programs['color'].setUniformMatrix4fv("M_it", true, mat4.invert(mat4.create(), suMat));
         this.programs['color'].setUniform4f("tint", [0, 1, 1, 1]);
 
         this.meshes['suzanne'].draw(this.gl.TRIANGLES);
