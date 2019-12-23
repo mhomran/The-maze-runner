@@ -10281,90 +10281,20 @@ function (_super) {
     _this.directional_lights = [{
       diffuse: gl_matrix_1.vec3.fromValues(0.5, 0.5, 0.5),
       specular: gl_matrix_1.vec3.fromValues(0.5, 0.5, 0.5),
-      ambient: gl_matrix_1.vec3.fromValues(0.1, 0.1, 0.1),
-      direction: gl_matrix_1.vec3.fromValues(-1, -1, -1)
+      ambient: gl_matrix_1.vec3.fromValues(1.0, 1.0, 1.0),
+      direction: gl_matrix_1.vec3.fromValues(0, -1, 0)
     }];
-    _this.point_lights = [{
-      diffuse: gl_matrix_1.vec3.fromValues(1, 0, 0),
-      specular: gl_matrix_1.vec3.fromValues(1, 0, 0),
-      ambient: gl_matrix_1.vec3.fromValues(0.1, 0.0, 0.0),
-      position: gl_matrix_1.vec3.fromValues(+6, +1, +0),
-      attenuation_quadratic: 1,
-      attenuation_linear: 0,
-      attenuation_constant: 0
-    }, {
-      diffuse: gl_matrix_1.vec3.fromValues(0, 1, 0),
-      specular: gl_matrix_1.vec3.fromValues(0, 1, 0),
-      ambient: gl_matrix_1.vec3.fromValues(0.0, 0.1, 0.0),
-      position: gl_matrix_1.vec3.fromValues(-6, +1, +0),
-      attenuation_quadratic: 1,
-      attenuation_linear: 0,
-      attenuation_constant: 0
-    }, {
-      diffuse: gl_matrix_1.vec3.fromValues(0, 0, 1),
-      specular: gl_matrix_1.vec3.fromValues(0, 0, 1),
-      ambient: gl_matrix_1.vec3.fromValues(0.0, 0.0, 0.1),
-      position: gl_matrix_1.vec3.fromValues(+0, +1, +6),
-      attenuation_quadratic: 1,
-      attenuation_linear: 0,
-      attenuation_constant: 0
-    }, {
-      diffuse: gl_matrix_1.vec3.fromValues(1, 1, 0),
-      specular: gl_matrix_1.vec3.fromValues(1, 1, 0),
-      ambient: gl_matrix_1.vec3.fromValues(0.1, 0.1, 0.0),
-      position: gl_matrix_1.vec3.fromValues(+0, +1, -6),
-      attenuation_quadratic: 1,
-      attenuation_linear: 0,
-      attenuation_constant: 0
-    }];
-    _this.spot_lights = [{
-      diffuse: gl_matrix_1.vec3.fromValues(5, 0, 0),
-      specular: gl_matrix_1.vec3.fromValues(5, 0, 0),
-      ambient: gl_matrix_1.vec3.fromValues(0.1, 0.0, 0.0),
-      position: gl_matrix_1.vec3.fromValues(29.7, 4, 31),
-      direction: gl_matrix_1.vec3.fromValues(0, -1, 0),
-      attenuation_quadratic: 1,
-      attenuation_linear: 0,
-      attenuation_constant: 0,
-      inner_cone: 0.25 * Math.PI,
-      outer_cone: 0.3 * Math.PI
-    }, {
-      diffuse: gl_matrix_1.vec3.fromValues(0, 5, 0),
-      specular: gl_matrix_1.vec3.fromValues(0, 5, 0),
-      ambient: gl_matrix_1.vec3.fromValues(0.0, 0.1, 0.0),
-      position: gl_matrix_1.vec3.fromValues(-3, +1, +3),
-      direction: gl_matrix_1.vec3.fromValues(+1, 0, -1),
-      attenuation_quadratic: 1,
-      attenuation_linear: 0,
-      attenuation_constant: 0,
-      inner_cone: 0.25 * Math.PI,
-      outer_cone: 0.3 * Math.PI
-    }, {
-      diffuse: gl_matrix_1.vec3.fromValues(0, 0, 5),
-      specular: gl_matrix_1.vec3.fromValues(0, 0, 5),
-      ambient: gl_matrix_1.vec3.fromValues(0.0, 0.0, 0.1),
-      position: gl_matrix_1.vec3.fromValues(+3, +1, -3),
-      direction: gl_matrix_1.vec3.fromValues(-1, 0, +1),
-      attenuation_quadratic: 1,
-      attenuation_linear: 0,
-      attenuation_constant: 0,
-      inner_cone: 0.25 * Math.PI,
-      outer_cone: 0.3 * Math.PI
-    }, {
-      diffuse: gl_matrix_1.vec3.fromValues(5, 5, 0),
-      specular: gl_matrix_1.vec3.fromValues(5, 5, 0),
-      ambient: gl_matrix_1.vec3.fromValues(0.1, 0.1, 0.0),
-      position: gl_matrix_1.vec3.fromValues(-3, +1, -3),
-      direction: gl_matrix_1.vec3.fromValues(+1, 0, +1),
-      attenuation_quadratic: 1,
-      attenuation_linear: 0,
-      attenuation_constant: 0,
-      inner_cone: 0.25 * Math.PI,
-      outer_cone: 0.3 * Math.PI
-    }];
+    _this.point_lights = [// { diffuse: vec3.fromValues(1,0,0), specular:vec3.fromValues(1,0,0), ambient:vec3.fromValues(0.1,0.0,0.0), position:vec3.fromValues(+6,+1,+0), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0 },
+      // {  diffuse: vec3.fromValues(0,1,0), specular:vec3.fromValues(0,1,0), ambient:vec3.fromValues(0.0,0.1,0.0), position:vec3.fromValues(-6,+1,+0), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0 },
+      // {  diffuse: vec3.fromValues(0,0,1), specular:vec3.fromValues(0,0,1), ambient:vec3.fromValues(0.0,0.0,0.1), position:vec3.fromValues(+0,+1,+6), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0 },
+      // { diffuse: vec3.fromValues(1,1,0), specular:vec3.fromValues(1,1,0), ambient:vec3.fromValues(0.1,0.1,0.0), position:vec3.fromValues(+0,+1,-6), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0 },
+    ];
+    _this.spot_lights = [// { diffuse: vec3.fromValues(5,0,0), specular:vec3.fromValues(5,0,0), ambient:vec3.fromValues(0.1,0.0,0.0), position:vec3.fromValues(29.7, 4, 31), direction:vec3.fromValues(0,-1,0), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0, inner_cone: 0.25*Math.PI, outer_cone: 0.3*Math.PI },
+      // {  diffuse: vec3.fromValues(0,5,0), specular:vec3.fromValues(0,5,0), ambient:vec3.fromValues(0.0,0.1,0.0), position:vec3.fromValues(-3,+1,+3), direction:vec3.fromValues(+1,0,-1), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0, inner_cone: 0.25*Math.PI, outer_cone: 0.3*Math.PI  },
+      // { diffuse: vec3.fromValues(0,0,5), specular:vec3.fromValues(0,0,5), ambient:vec3.fromValues(0.0,0.0,0.1), position:vec3.fromValues(+3,+1,-3), direction:vec3.fromValues(-1,0,+1), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0, inner_cone: 0.25*Math.PI, outer_cone: 0.3*Math.PI  },
+      // { diffuse: vec3.fromValues(5,5,0), specular:vec3.fromValues(5,5,0), ambient:vec3.fromValues(0.1,0.1,0.0), position:vec3.fromValues(-3,+1,-3), direction:vec3.fromValues(+1,0,+1), attenuation_quadratic:1, attenuation_linear:0, attenuation_constant:0, inner_cone: 0.25*Math.PI, outer_cone: 0.3*Math.PI  },
+    ];
     _this.time = 0;
-    _this.anisotropic_filtering = 0; // This will hold the maximum number of samples that the anisotropic filtering is allowed to read. 1 is equivalent to isotropic filtering.
-
     return _this;
   }
 
@@ -10442,15 +10372,12 @@ function (_super) {
     this.meshes['ground'] = MeshUtils.Plane(this.gl, {
       min: [0, 0],
       max: [100, 100]
-    });
+    }); // texture coordinates
+
     this.meshes['maze'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["maze-model"]);
     this.meshes['health'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["health-model"]);
     this.meshes['suzanne'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["suzanne-model"]);
     this.meshes['coin'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["coin-model"]);
-    this.meshes['ground'] = MeshUtils.Plane(this.gl, {
-      min: [0, 0],
-      max: [100, 100]
-    });
     this.meshes['beast'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["beast-model"]);
     this.meshes['key'] = MeshUtils.LoadOBJMesh(this.gl, this.game.loader.resources["key-model"]);
     this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true); //health texture
@@ -10528,12 +10455,7 @@ function (_super) {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR); // Anisotropic filtering is not supported by WebGL by default so we need to ask the context for the extension.
-
-    this.anisotropy_ext = this.gl.getExtension('EXT_texture_filter_anisotropic'); // The device does not support anisotropic fltering, the extension will be null. So we need to check before using it.
-    // if it is supported, we will set our default filtering samples to the maximum value allowed by the device.
-
-    if (this.anisotropy_ext) this.anisotropic_filtering = this.gl.getParameter(this.anisotropy_ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
     this.cameras = [];
     this.cameras[0] = new camera_1.default();
     this.cameras[0].type = 'perspective';
@@ -10658,42 +10580,6 @@ function (_super) {
 
         _this.programs[key].setUniform3f("directional_lights[" + i + "].direction", gl_matrix_1.vec3.normalize(gl_matrix_1.vec3.create(), light.direction));
       });
-      this_1.point_lights.forEach(function (light, i) {
-        _this.programs[key].setUniform3f("point_lights[" + i + "].diffuse", light.diffuse);
-
-        _this.programs[key].setUniform3f("point_lights[" + i + "].specular", light.specular);
-
-        _this.programs[key].setUniform3f("point_lights[" + i + "].ambient", light.ambient);
-
-        _this.programs[key].setUniform3f("point_lights[" + i + "].position", light.position);
-
-        _this.programs[key].setUniform1f("point_lights[" + i + "].attenuation_quadratic", light.attenuation_quadratic);
-
-        _this.programs[key].setUniform1f("point_lights[" + i + "].attenuation_linear", light.attenuation_linear);
-
-        _this.programs[key].setUniform1f("point_lights[" + i + "].attenuation_constant", light.attenuation_constant);
-      });
-      this_1.spot_lights.forEach(function (light, i) {
-        _this.programs[key].setUniform3f("spot_lights[" + i + "].diffuse", light.diffuse);
-
-        _this.programs[key].setUniform3f("spot_lights[" + i + "].specular", light.specular);
-
-        _this.programs[key].setUniform3f("spot_lights[" + i + "].ambient", light.ambient);
-
-        _this.programs[key].setUniform3f("spot_lights[" + i + "].position", light.position);
-
-        _this.programs[key].setUniform3f("spot_lights[" + i + "].direction", gl_matrix_1.vec3.normalize(gl_matrix_1.vec3.create(), light.direction));
-
-        _this.programs[key].setUniform1f("spot_lights[" + i + "].attenuation_quadratic", light.attenuation_quadratic);
-
-        _this.programs[key].setUniform1f("spot_lights[" + i + "].attenuation_linear", light.attenuation_linear);
-
-        _this.programs[key].setUniform1f("spot_lights[" + i + "].attenuation_constant", light.attenuation_constant);
-
-        _this.programs[key].setUniform1f("spot_lights[" + i + "].inner_cone", light.inner_cone);
-
-        _this.programs[key].setUniform1f("spot_lights[" + i + "].outer_cone", light.outer_cone);
-      });
     };
 
     var this_1 = this;
@@ -10757,9 +10643,7 @@ function (_super) {
     this.programs['texture'].setUniform4f("tint", [1, 0, 0, 1]);
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['ground']);
-    this.programs['texture'].setUniform1i('texture_sampler', 0); // If anisotropic filtering is supported, we send the parameter to the texture paramters.
-
-    if (this.anisotropy_ext) this.gl.texParameterf(this.gl.TEXTURE_2D, this.anisotropy_ext.TEXTURE_MAX_ANISOTROPY_EXT, this.anisotropic_filtering);
+    this.programs['texture'].setUniform1i('texture_sampler', 0);
     this.meshes['ground'].draw(this.gl.TRIANGLES); //draw key
 
     var keyMat = gl_matrix_1.mat4.create();
@@ -10775,9 +10659,7 @@ function (_super) {
     this.programs['texture'].setUniform4f("tint", [1, 1, 1, 1]);
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures['key-texture']);
-    this.programs['texture'].setUniform1i('texture_sampler', 0); // If anisotropic filtering is supported, we send the parameter to the texture paramters.
-
-    if (this.anisotropy_ext) this.gl.texParameterf(this.gl.TEXTURE_2D, this.anisotropy_ext.TEXTURE_MAX_ANISOTROPY_EXT, this.anisotropic_filtering);
+    this.programs['texture'].setUniform1i('texture_sampler', 0);
     this.meshes['key'].draw(this.gl.TRIANGLES); //draw beasts
 
     this.gl.activeTexture(this.gl.TEXTURE0);
@@ -10808,9 +10690,9 @@ function (_super) {
       gl_matrix_1.mat4.rotateY(suMat, suMat, Math.atan(this.cameras[0].direction[0] / this.cameras[0].direction[2]));
     }
 
-    this.programs['color'].setUniform3f("material.diffuse", [0.5, 0.5, 0.5]);
-    this.programs['color'].setUniform3f("material.specular", [0.2, 0.2, 0.2]);
-    this.programs['color'].setUniform3f("material.ambient", [0.6, 0.5, 0.6]);
+    this.programs['color'].setUniform3f("material.diffuse", [0.1, 0.1, 0.1]);
+    this.programs['color'].setUniform3f("material.specular", [0.3, 0.3, 0.3]);
+    this.programs['color'].setUniform3f("material.ambient", [0.8, 0.7, 0.5]);
     this.programs['color'].setUniform1f("material.shininess", 2);
     this.programs['color'].setUniformMatrix4fv("M", false, suMat);
     this.programs['color'].setUniformMatrix4fv("M_it", true, gl_matrix_1.mat4.invert(gl_matrix_1.mat4.create(), suMat));
@@ -10913,7 +10795,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64540" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64769" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

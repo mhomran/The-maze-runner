@@ -30,34 +30,34 @@ struct DirectionalLight {
 #define NUM_DIRECTIONAL_LIGHTS 1
 uniform DirectionalLight directional_lights[NUM_DIRECTIONAL_LIGHTS];
 
-struct PointLight {
-    vec3 diffuse;
-    vec3 specular;
-    vec3 ambient;
-    vec3 position;
-    float attenuation_quadratic;
-    float attenuation_linear;
-    float attenuation_constant;
-};
-// We allow for only 4 point lights (we could support also less or more)
-#define NUM_POINT_LIGHTS 4
-uniform PointLight point_lights[NUM_POINT_LIGHTS];
+// struct PointLight {
+//     vec3 diffuse;
+//     vec3 specular;
+//     vec3 ambient;
+//     vec3 position;
+//     float attenuation_quadratic;
+//     float attenuation_linear;
+//     float attenuation_constant;
+// };
+// // We allow for only 4 point lights (we could support also less or more)
+// #define NUM_POINT_LIGHTS 4
+// uniform PointLight point_lights[NUM_POINT_LIGHTS];
 
-struct SpotLight {
-    vec3 diffuse;
-    vec3 specular;
-    vec3 ambient;
-    vec3 position;
-    vec3 direction;
-    float attenuation_quadratic;
-    float attenuation_linear;
-    float attenuation_constant;
-    float inner_cone;
-    float outer_cone;
-};
-// We allow for only 4 spot lights (we could support also less or more)
-#define NUM_SPOT_LIGHTS 4
-uniform SpotLight spot_lights[NUM_SPOT_LIGHTS];
+// struct SpotLight {
+//     vec3 diffuse;
+//     vec3 specular;
+//     vec3 ambient;
+//     vec3 position;
+//     vec3 direction;
+//     float attenuation_quadratic;
+//     float attenuation_linear;
+//     float attenuation_constant;
+//     float inner_cone;
+//     float outer_cone;
+// };
+// // We allow for only 4 spot lights (we could support also less or more)
+// #define NUM_SPOT_LIGHTS 4
+// uniform SpotLight spot_lights[NUM_SPOT_LIGHTS];
 
 // Just the regular lambert diffuse and phong specular
 float diffuse(vec3 n, vec3 l){
@@ -84,49 +84,49 @@ vec3 calculate_directional_lights(vec3 n, vec3 v){
 }
 
 // This will loop over all point lights and calculate the total point illuminuation
-vec3 calculate_point_lights(vec3 n, vec3 v){
-    vec3 color = vec3(0,0,0);
-    for(int i = 0; i < NUM_POINT_LIGHTS; i++){
-        PointLight light = point_lights[i];
+// vec3 calculate_point_lights(vec3 n, vec3 v){
+//     vec3 color = vec3(0,0,0);
+//     for(int i = 0; i < NUM_POINT_LIGHTS; i++){
+//         PointLight light = point_lights[i];
         
-            vec3 l = light.position - v_world;
-            float d = length(l);
-            l /= d;
-            float attenuation = light.attenuation_constant +
-                                light.attenuation_linear * d +
-                                light.attenuation_quadratic * d * d;
-            color += material.ambient*light.ambient + 
-                (
-                    material.diffuse*light.diffuse*diffuse(n, l) + 
-                    material.specular*light.specular*specular(n, l, v, material.shininess)
-                )/attenuation;
+//             vec3 l = light.position - v_world;
+//             float d = length(l);
+//             l /= d;
+//             float attenuation = light.attenuation_constant +
+//                                 light.attenuation_linear * d +
+//                                 light.attenuation_quadratic * d * d;
+//             color += material.ambient*light.ambient + 
+//                 (
+//                     material.diffuse*light.diffuse*diffuse(n, l) + 
+//                     material.specular*light.specular*specular(n, l, v, material.shininess)
+//                 )/attenuation;
         
-    }
-    return color;
-}
+//     }
+//     return color;
+// }
 
-// This will loop over all spot lights and calculate the total spot illuminuation
-vec3 calculate_spot_lights(vec3 n, vec3 v){
-    vec3 color = vec3(0,0,0);
-    for(int i = 0; i < NUM_SPOT_LIGHTS; i++){
-        SpotLight light = spot_lights[i];
+// // This will loop over all spot lights and calculate the total spot illuminuation
+// vec3 calculate_spot_lights(vec3 n, vec3 v){
+//     vec3 color = vec3(0,0,0);
+//     for(int i = 0; i < NUM_SPOT_LIGHTS; i++){
+//         SpotLight light = spot_lights[i];
         
-            vec3 l = light.position - v_world;
-            float d = length(l);
-            l /= d;
-            float angle = acos(dot(-l, light.direction));
-            float attenuation = light.attenuation_constant +
-                                light.attenuation_linear * d +
-                                light.attenuation_quadratic * d * d;
-            color += material.ambient*light.ambient + 
-                (
-                    material.diffuse*light.diffuse*diffuse(n, l) + 
-                    material.specular*light.specular*specular(n, l, v, material.shininess)
-                )/attenuation*smoothstep(light.outer_cone, light.inner_cone, angle);
+//             vec3 l = light.position - v_world;
+//             float d = length(l);
+//             l /= d;
+//             float angle = acos(dot(-l, light.direction));
+//             float attenuation = light.attenuation_constant +
+//                                 light.attenuation_linear * d +
+//                                 light.attenuation_quadratic * d * d;
+//             color += material.ambient*light.ambient + 
+//                 (
+//                     material.diffuse*light.diffuse*diffuse(n, l) + 
+//                     material.specular*light.specular*specular(n, l, v, material.shininess)
+//                 )/attenuation*smoothstep(light.outer_cone, light.inner_cone, angle);
         
-    }
-    return color;
-}
+//     }
+//     return color;
+// }
 
 uniform vec4 tint;
 uniform sampler2D texture_sampler; // the sampler using which we will sample colors from the texture 
@@ -139,9 +139,9 @@ void main(){
 
     color = texture(texture_sampler, v_texcoord) * v_color * tint 
     + vec4(
-        calculate_directional_lights(n, v) +
-        calculate_point_lights(n, v) +
-        calculate_spot_lights(n, v),
+        // calculate_directional_lights(n, v),// +
+    //    calculate_point_lights(n, v) +
+       calculate_spot_lights(n, v),
         1.0f
     );
 }
