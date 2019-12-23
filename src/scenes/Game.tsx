@@ -29,7 +29,7 @@ export default class TexturedModelsScene extends Scene {
     health_postions: vec3[];
     coin_postions: vec3[];
     beast_postions: vec3[];
-    health_count : number = 12;
+    health_count : number = 10;
     coin_count: number = 0;
     textures: { [name: string]: WebGLTexture } = {};
 
@@ -212,7 +212,7 @@ export default class TexturedModelsScene extends Scene {
 
         this.gl.clearColor(0.88, 0.65, 0.15, 1);
 
-        this.setupControls();
+       // this.setupControls();
 
     }
 
@@ -296,8 +296,11 @@ export default class TexturedModelsScene extends Scene {
       if (Math.ceil(this.objectPosition[0])==30 &&Math.ceil(this.objectPosition[2])==31){
           return 2;
       }
-      if( parseInt(document.querySelector('#Timer_p').innerHTML)==0)
-      return 3;
+      if( document.querySelector('#Timer_p').innerHTML=="Finished")
+      {
+        document.querySelector('#Timer_p').innerHTML=="Finished";
+        return 3;
+      }
 
       return 0;
     }
@@ -461,49 +464,11 @@ export default class TexturedModelsScene extends Scene {
         for (let key in this.textures)
             this.gl.deleteTexture(this.textures[key]);
         this.textures = {};
-        this.clearControls();
+       
     }
 
 
 
-    /////////////////////////////////////////////////////////
-    ////// ADD CONTROL TO THE WEBPAGE (NOT IMPORTNANT) //////
-    /////////////////////////////////////////////////////////
-    private setupControls() {
-        const controls = document.querySelector('#controls');
-
-        const RGBToHex = (rgb: [number, number, number]): string => {
-            let arraybuffer = new ArrayBuffer(4);
-            let dv = new DataView(arraybuffer);
-            dv.setUint8(3, 0);
-            dv.setUint8(2, rgb[0]);
-            dv.setUint8(1, rgb[1]);
-            dv.setUint8(0, rgb[2]);
-            return '#' + dv.getUint32(0, true).toString(16);
-        }
-
-        const HexToRGB = (hex: string): [number, number, number] => {
-            let arraybuffer = new ArrayBuffer(4);
-            let dv = new DataView(arraybuffer);
-            dv.setUint32(0, Number.parseInt(hex.slice(1), 16), true);
-            return [dv.getUint8(2), dv.getUint8(1), dv.getUint8(0)];
-        }
-
-        controls.appendChild(
-            <div>
-                <div className="control-row">
-                    <label className="control-label">Object Position</label>
-                    <Vector vector={this.objectPosition} />
-                </div>
-            </div>
-        );
-    }
-
-    private clearControls() {
-        const controls = document.querySelector('#controls');
-        controls.innerHTML = "";
-
-    }
 
 }
 //
