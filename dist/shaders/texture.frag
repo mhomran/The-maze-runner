@@ -139,9 +139,9 @@ void main(){
 
     color = texture(texture_sampler, v_texcoord) * v_color * tint 
     + vec4(
-        // calculate_directional_lights(n, v),// +
+        calculate_directional_lights(n, v),// +
     //    calculate_point_lights(n, v) +
-       calculate_spot_lights(n, v),
+    //    calculate_spot_lights(n, v),
         1.0f
     );
 }

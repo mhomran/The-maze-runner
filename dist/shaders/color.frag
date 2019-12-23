@@ -134,9 +134,9 @@ void main(){
     vec3 n = normalize(v_normal);
     vec3 v = normalize(v_view);
     color =  vec4(
-        // calculate_directional_lights(n, v),// + 
+        calculate_directional_lights(n, v),// + 
       // calculate_point_lights(n, v) +
-       calculate_spot_lights(n, v),
+    //    calculate_spot_lights(n, v),
         1.0f
     ); // Send our interpolated color
     //vertexColor * tint +
