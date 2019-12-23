@@ -35,16 +35,26 @@
             <p id="Score_p">0</p>
         </div>
         <div id="Health">Health
-            <p id="Health_p">0</p>
+            <p id="Health_p">12</p>
         </div>
         <div id="Timer">Time
-            <p id="Timer_p">0</p>
+            <p id="Timer_p">5</p>
         </div>
     </div>
     <!-- The following line includes our script which will run WebGL -->
 
     <script src="/app.5cec07dd.js"></script>
+ <script>//////////////Timer///////////////
+var timeleft = 5;
+var downloadTimer = setInterval(function () {
+  document.getElementById("Timer_p").innerHTML = timeleft;
+  timeleft -= 1;
 
+  if (timeleft <= 0) {
+    clearInterval(downloadTimer);
+    document.getElementById("Timer_p").innerHTML = "Finished";
+  }
+}, 1000);</script>
 
 </body>
 

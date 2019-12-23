@@ -29,7 +29,7 @@ export default class TexturedModelsScene extends Scene {
     health_postions: vec3[];
     coin_postions: vec3[];
     beast_postions: vec3[];
-    health_count: number = 3;
+    health_count : number = 12;
     coin_count: number = 0;
     textures: { [name: string]: WebGLTexture } = {};
 
@@ -38,6 +38,7 @@ export default class TexturedModelsScene extends Scene {
     Levels: {[name:string]:Level};
 
     time: number = 0;
+  
 
     anisotropy_ext: EXT_texture_filter_anisotropic; // This will hold the anisotropic filtering extension
     anisotropic_filtering: number = 0; // This will hold the maximum number of samples that the anisotropic filtering is allowed to read. 1 is equivalent to isotropic filtering.
@@ -78,6 +79,8 @@ export default class TexturedModelsScene extends Scene {
     }
 
     public start(): void {
+        
+       
         this.programs['texture'] = new ShaderProgram(this.gl);
         this.programs['texture'].attach(this.game.loader.resources["texture.vert"], this.gl.VERTEX_SHADER);
         this.programs['texture'].attach(this.game.loader.resources["texture.frag"], this.gl.FRAGMENT_SHADER);
@@ -244,7 +247,6 @@ export default class TexturedModelsScene extends Scene {
                 && Math.ceil(this.Levels.Level1.health[i][2]) == Math.ceil(this.objectPosition[2])) {
                 this.health_count++;
                 document.querySelector('#Health_p').innerHTML =
-
                     this.health_count.toFixed();
                     this.Levels.Level1.health.splice(i, 1);
             }
@@ -269,10 +271,35 @@ export default class TexturedModelsScene extends Scene {
             if (Math.ceil(this.Levels.Level1.beast[i][0] + (5 * triangle(this.time / 1000))) == Math.ceil(this.objectPosition[0])
                 && Math.ceil(this.Levels.Level1.beast[i][2]) == Math.ceil(this.objectPosition[2])) {
                 this.health_count--;
+              
                 document.querySelector('#Health_p').innerHTML =
                     this.health_count.toFixed();
             }
         }
+        let x = this.GAME_CHECK();
+        if (x==1||x==3)
+        alert('Game over');
+        else if (x==2)
+        alert('ala wadak');
+       
+
+    }
+
+    public GAME_CHECK():number{
+
+        
+        if(this.health_count==0)
+        {
+            return 1;
+        }
+
+      if (Math.ceil(this.objectPosition[0])==30 &&Math.ceil(this.objectPosition[2])==31){
+          return 2;
+      }
+      if( parseInt(document.querySelector('#Timer_p').innerHTML)==0)
+      return 3;
+
+      return 0;
     }
 
     public draw(deltaTime: number): void {

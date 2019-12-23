@@ -11117,7 +11117,7 @@ function (_super) {
 
     _this.programs = {};
     _this.meshes = {};
-    _this.health_count = 3;
+    _this.health_count = 12;
     _this.coin_count = 0;
     _this.textures = {};
     _this.objectPosition = gl_matrix_1.vec3.fromValues(-2.6, -1.5, -10);
@@ -11357,6 +11357,22 @@ function (_super) {
         document.querySelector('#Health_p').innerHTML = this.health_count.toFixed();
       }
     }
+
+    var x = this.GAME_CHECK();
+    if (x == 1 || x == 3) alert('Game over');else if (x == 2) alert('ala wadak');
+  };
+
+  TexturedModelsScene.prototype.GAME_CHECK = function () {
+    if (this.health_count == 0) {
+      return 1;
+    }
+
+    if (Math.ceil(this.objectPosition[0]) == 30 && Math.ceil(this.objectPosition[2]) == 31) {
+      return 2;
+    }
+
+    if (parseInt(document.querySelector('#Timer_p').innerHTML) == 0) return 3;
+    return 0;
   };
 
   TexturedModelsScene.prototype.draw = function (deltaTime) {
